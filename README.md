@@ -6,6 +6,15 @@ A modern SaaS print business management application built with a monorepo archit
 
 "Let's Print" is a cloud-based SaaS platform for print business startups. It lets users subscribe, get their own CRM and storefront, manage client orders, forward jobs to production, and handle all workflows from marketing to delivery—no need for their own print machinery.
 
+### User Roles
+
+The platform supports four distinct user roles with customized dashboards:
+
+1. **Client** - Place orders, track deliveries, manage printing needs
+2. **Business Owner** - Manage orders, coordinate with production, oversee clients
+3. **Production Owner** - Handle production workflows, manage equipment and jobs
+4. **SuperAdmin** - Complete system administration and oversight
+
 ## Architecture
 
 This project uses a monorepo structure with the following components:
@@ -107,6 +116,14 @@ npm run start        # Start production server
 npm run lint         # Run ESLint
 ```
 
+#### Frontend Features
+- 🔐 Role-based authentication (Client, Business Owner, Production Owner, SuperAdmin)
+- 📱 Fully responsive design with mobile-first approach
+- 🎨 Modern UI with Tailwind CSS
+- 🚀 Optimized performance with Next.js App Router
+- 📄 Pages: Landing, Login, Signup, Dashboard, Error, 404
+- 🎭 Dynamic navigation based on user roles
+
 ### Backend Development
 
 ```bash
@@ -133,17 +150,17 @@ Each workspace has its own set of scripts. Refer to the individual `package.json
 ## Tech Stack
 
 ### Frontend
-- Next.js 14
+- Next.js 14 (App Router)
 - React 18
-- TypeScript
+- JavaScript (ES6+)
 - Tailwind CSS
-- React Query (for API calls)
+- Role-based authentication system
 
 ### Backend
 - Node.js
 - Express
 - TypeScript
-- PostgreSQL (Database)
+- MySQL (Database)
 - Prisma (ORM)
 - JWT (Authentication)
 

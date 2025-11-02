@@ -61,7 +61,7 @@ frontend/
 - 🚀 Server-side rendering (SSR)
 - 📄 Static site generation (SSG)
 - 🖼️ Optimized images and fonts
-- 📝 TypeScript for type safety
+- � MySQL database integration (via backend API)
 
 ## Pages
 
