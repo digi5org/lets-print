@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import { UserRole } from "@/types";
+
 
 // Mock user data - in production, this would come from auth context or API
 const MOCK_USER = {
   name: "John Doe",
-  role: "client" as UserRole, // Change this to test different roles: "business_owner", "production_owner", "superadmin"
+  role: "client", // Change this to test different roles: "business_owner", "production_owner", "superadmin"
 };
 
 export default function DashboardPage() {

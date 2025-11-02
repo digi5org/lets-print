@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-type UserRole = "client" | "business_owner" | "production_owner" | "superadmin";
+
 
 export default function SignupPage() {
   const router = useRouter();
@@ -13,12 +13,12 @@ export default function SignupPage() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "client" as UserRole,
+    role: "client",
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -54,7 +54,7 @@ export default function SignupPage() {
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,

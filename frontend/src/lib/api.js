@@ -3,7 +3,7 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 const API_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || "30000", 10);
 
-interface RequestOptions extends RequestInit {
+
   timeout?: number;
 }
 
@@ -24,7 +24,7 @@ class ApiError extends Error {
 async function fetchWithTimeout(
   url: string,
   options: RequestOptions = {}
-): Promise<Response> {
+): Promise {
   const { timeout = API_TIMEOUT, ...fetchOptions } = options;
 
   const controller = new AbortController();
@@ -49,10 +49,10 @@ async function fetchWithTimeout(
 /**
  * Make an API request
  */
-async function apiRequest<T>(
+async function apiRequest(
   endpoint: string,
   options: RequestOptions = {}
-): Promise<T> {
+): Promise {
   const url = `${API_BASE_URL}${endpoint}`;
   
   // Add default headers
@@ -104,36 +104,36 @@ async function apiRequest<T>(
  */
 export const api = {
   // GET request
-  get: <T>(endpoint: string, options?: RequestOptions) =>
-    apiRequest<T>(endpoint, { ...options, method: "GET" }),
+  get: (endpoint: string, options?: RequestOptions) =>
+    apiRequest(endpoint, { ...options, method: "GET" }),
 
   // POST request
-  post: <T>(endpoint: string, data?: unknown, options?: RequestOptions) =>
-    apiRequest<T>(endpoint, {
+  post: (endpoint: string, data?: unknown, options?: RequestOptions) =>
+    apiRequest(endpoint, {
       ...options,
       method: "POST",
       body: data ? JSON.stringify(data) : undefined,
     }),
 
   // PUT request
-  put: <T>(endpoint: string, data?: unknown, options?: RequestOptions) =>
-    apiRequest<T>(endpoint, {
+  put: (endpoint: string, data?: unknown, options?: RequestOptions) =>
+    apiRequest(endpoint, {
       ...options,
       method: "PUT",
       body: data ? JSON.stringify(data) : undefined,
     }),
 
   // PATCH request
-  patch: <T>(endpoint: string, data?: unknown, options?: RequestOptions) =>
-    apiRequest<T>(endpoint, {
+  patch: (endpoint: string, data?: unknown, options?: RequestOptions) =>
+    apiRequest(endpoint, {
       ...options,
       method: "PATCH",
       body: data ? JSON.stringify(data) : undefined,
     }),
 
   // DELETE request
-  delete: <T>(endpoint: string, options?: RequestOptions) =>
-    apiRequest<T>(endpoint, { ...options, method: "DELETE" }),
+  delete: (endpoint: string, options?: RequestOptions) =>
+    apiRequest(endpoint, { ...options, method: "DELETE" }),
 };
 
 /**
@@ -141,53 +141,53 @@ export const api = {
  */
 export const authApi = {
   login: (email: string, password: string) =>
-    api.post<{ user: any; token: string }>("/auth/login", { email, password }),
+    api.post("/auth/login", { email, password }),
 
   signup: (data: { name: string; email: string; password: string; role: string }) =>
-    api.post<{ user: any; token: string }>("/auth/signup", data),
+    api.post("/auth/signup", data),
 
   logout: () => api.post("/auth/logout"),
 
-  getCurrentUser: () => api.get<{ user: any }>("/auth/me"),
+  getCurrentUser: () => api.get("/auth/me"),
 
-  refreshToken: () => api.post<{ token: string }>("/auth/refresh"),
+  refreshToken: () => api.post("/auth/refresh"),
 };
 
 /**
  * Orders API calls
  */
 export const ordersApi = {
-  getAll: (params?: Record<string, string>) => {
+  getAll: (params?: Record {
     const queryString = params ? `?${new URLSearchParams(params)}` : "";
-    return api.get<{ orders: any[] }>(`/orders${queryString}`);
+    return api.get(`/orders${queryString}`);
   },
 
-  getById: (id: string) => api.get<{ order: any }>(`/orders/${id}`),
+  getById: (id: string) => api.get(`/orders/${id}`),
 
-  create: (data: any) => api.post<{ order: any }>("/orders", data),
+  create: (data) => api.post("/orders", data),
 
-  update: (id: string, data: any) => api.put<{ order: any }>(`/orders/${id}`, data),
+  update: (id: string, data) => api.put(`/orders/${id}`, data),
 
   delete: (id: string) => api.delete(`/orders/${id}`),
 
   updateStatus: (id: string, status: string) =>
-    api.patch<{ order: any }>(`/orders/${id}/status`, { status }),
+    api.patch(`/orders/${id}/status`, { status }),
 };
 
 /**
  * Users API calls
  */
 export const usersApi = {
-  getAll: (params?: Record<string, string>) => {
+  getAll: (params?: Record {
     const queryString = params ? `?${new URLSearchParams(params)}` : "";
-    return api.get<{ users: any[] }>(`/users${queryString}`);
+    return api.get(`/users${queryString}`);
   },
 
-  getById: (id: string) => api.get<{ user: any }>(`/users/${id}`),
+  getById: (id: string) => api.get(`/users/${id}`),
 
-  create: (data: any) => api.post<{ user: any }>("/users", data),
+  create: (data) => api.post("/users", data),
 
-  update: (id: string, data: any) => api.put<{ user: any }>(`/users/${id}`, data),
+  update: (id: string, data) => api.put(`/users/${id}`, data),
 
   delete: (id: string) => api.delete(`/users/${id}`),
 };
@@ -198,7 +198,7 @@ export const usersApi = {
 export async function uploadFile(
   file: File,
   endpoint: string = "/upload"
-): Promise<{ url: string }> {
+): Promise {
   const formData = new FormData();
   formData.append("file", file);
 

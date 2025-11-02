@@ -6,9 +6,8 @@ Next.js frontend application for the Let's Print SaaS platform.
 
 - Next.js 14
 - React 18
-- TypeScript
+- JavaScript (ES6+)
 - Tailwind CSS
-- React Query (for API calls)
 
 ## Setup
 
@@ -53,7 +52,6 @@ frontend/
 - `npm run build` - Build for production
 - `npm start` - Start production server
 - `npm run lint` - Run ESLint
-- `npm run type-check` - Run TypeScript type checking
 
 ## Features
 
@@ -85,12 +83,12 @@ The dashboard navigation adapts based on user role:
 
 ## Testing Different Roles
 
-To test different user roles, modify the `MOCK_USER` in `/src/app/dashboard/page.tsx`:
+To test different user roles, modify the `MOCK_USER` in `/src/app/dashboard/page.jsx`:
 
-```typescript
+```javascript
 const MOCK_USER = {
   name: "John Doe",
-  role: "client" as UserRole, // Change to: "business_owner", "production_owner", "superadmin"
+  role: "client", // Change to: "business_owner", "production_owner", "superadmin"
 };
 ```
 

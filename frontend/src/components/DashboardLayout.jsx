@@ -3,25 +3,18 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { UserRole } from "@/types";
 import { getNavigationForRole } from "@/config/navigation";
-
-interface DashboardLayoutProps {
-  children: React.ReactNode;
-  userRole: UserRole;
-  userName?: string;
-}
 
 export default function DashboardLayout({ 
   children, 
   userRole, 
   userName = "User" 
-}: DashboardLayoutProps) {
+}) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigation = getNavigationForRole(userRole);
 
-  const roleLabels: Record<UserRole, string> = {
+  const roleLabels = {
     client: "Client",
     business_owner: "Business Owner",
     production_owner: "Production Owner",

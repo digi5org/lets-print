@@ -3,12 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 
-interface ErrorPageProps {
-  error: Error & { digest?: string };
-  reset: () => void;
-}
-
-export default function ErrorPage({ error, reset }: ErrorPageProps) {
+export default function ErrorPage({ error, reset }) {
   useEffect(() => {
     // Log the error to an error reporting service
     console.error("Error:", error);

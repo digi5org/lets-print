@@ -1,14 +1,5 @@
 "use client";
 
-import { UserRole } from "@/types";
-
-export interface NavigationItem {
-  name: string;
-  href: string;
-  icon: JSX.Element;
-  roles: UserRole[];
-}
-
 // SVG Icons as components
 const HomeIcon = () => (
   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,7 +44,7 @@ const BusinessIcon = () => (
   </svg>
 );
 
-export const navigationItems: NavigationItem[] = [
+export const navigationItems = [
   {
     name: "Dashboard",
     href: "/dashboard",
@@ -110,6 +101,6 @@ export const navigationItems: NavigationItem[] = [
   },
 ];
 
-export function getNavigationForRole(role: UserRole): NavigationItem[] {
+export function getNavigationForRole(role) {
   return navigationItems.filter((item) => item.roles.includes(role));
 }
