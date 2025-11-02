@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: letsprints-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: lets_print_db
+      MYSQL_USER: letsprintuser
+      MYSQL_PASSWORD: letsprintpass123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - letsprints-network
+
+volumes:
+  mysql_data:
+
+networks:
+  letsprints-network:
+    driver: bridge
