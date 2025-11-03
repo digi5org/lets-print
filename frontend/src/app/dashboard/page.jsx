@@ -9,8 +9,8 @@ import SuperAdminDashboard from "@/components/dashboards/SuperAdminDashboard";
 
 // Mock user data - in production, this would come from auth context or API
 const MOCK_USER = {
-  name: "John Doe",
-  role: "client", // Change this to test different roles: "business_owner", "production_owner", "superadmin"
+  name: "Sarah Mitchell",
+  role: "superadmin", // Change this to test different roles: "business_owner", "production_owner", "superadmin"
 };
 
 export default function DashboardPage() {

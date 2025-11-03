@@ -52,9 +52,59 @@ export const navigationItems = [
     roles: ["client", "business_owner", "production_owner", "superadmin"],
   },
   {
+    name: "New Order",
+    href: "/dashboard/new-order",
+    icon: <OrdersIcon />,
+    roles: ["client"],
+  },
+  {
     name: "My Orders",
     href: "/dashboard/orders",
     icon: <OrdersIcon />,
+    roles: ["client"],
+    badge: 5,
+  },
+  {
+    name: "Track Shipment",
+    href: "/dashboard/track",
+    icon: <ProductionIcon />,
+    roles: ["client"],
+  },
+  {
+    name: "Design Library",
+    href: "/dashboard/designs",
+    icon: <AnalyticsIcon />,
+    roles: ["client"],
+  },
+  {
+    name: "Invoices & Payments",
+    href: "/dashboard/invoices",
+    icon: <BusinessIcon />,
+    roles: ["client"],
+  },
+  {
+    name: "Browse Products",
+    href: "/dashboard/products",
+    icon: <ProductionIcon />,
+    roles: ["client"],
+  },
+  {
+    name: "Support",
+    href: "/dashboard/support",
+    icon: <UsersIcon />,
+    roles: ["client"],
+  },
+  {
+    name: "Tickets",
+    href: "/dashboard/tickets",
+    icon: <OrdersIcon />,
+    roles: ["client"],
+    badge: 2,
+  },
+  {
+    name: "My Account",
+    href: "/dashboard/account",
+    icon: <SettingsIcon />,
     roles: ["client"],
   },
   {
@@ -97,7 +147,7 @@ export const navigationItems = [
     name: "Settings",
     href: "/dashboard/settings",
     icon: <SettingsIcon />,
-    roles: ["client", "business_owner", "production_owner", "superadmin"],
+    roles: ["business_owner", "production_owner", "superadmin"],
   },
 ];
 
