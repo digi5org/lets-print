@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import { getNavigationForRole } from "@/config/navigation";
 
 export default function DashboardLayout({ 
@@ -11,6 +12,7 @@ export default function DashboardLayout({
   userName = "User" 
 }) {
   const pathname = usePathname();
+  const { logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigation = getNavigationForRole(userRole);
 
@@ -102,9 +104,8 @@ export default function DashboardLayout({
           {/* Logout */}
           <div className="px-4 py-4 border-t border-gray-100">
             <button
-              onClick={() => {
-                // TODO: Implement logout logic
-                window.location.href = "/login";
+              onClick={async () => {
+                await logout();
               }}
               className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-gray-600 rounded-lg hover:bg-red-50 hover:text-red-600 transition-all"
             >

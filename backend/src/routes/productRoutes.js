@@ -6,7 +6,7 @@ import {
   updateProduct,
   deleteProduct,
 } from '../controllers/productController.js';
-import { authenticate, getCurrentUser, requireAdmin } from '../middleware/auth.js';
+import { authenticate, requirePermission, requireSuperAdmin } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import {
   createProductValidation,
@@ -20,12 +20,11 @@ const router = express.Router();
 router.get('/', getAllProducts);
 router.get('/:id', idParamValidation, validate, getProductById);
 
-// Admin only routes
+// Admin routes - super_admin or users with products:create permission
 router.post(
   '/',
   authenticate,
-  getCurrentUser,
-  requireAdmin,
+  requirePermission('products:create'),
   createProductValidation,
   validate,
   createProduct
@@ -34,8 +33,7 @@ router.post(
 router.put(
   '/:id',
   authenticate,
-  getCurrentUser,
-  requireAdmin,
+  requirePermission('products:update'),
   updateProductValidation,
   validate,
   updateProduct
@@ -44,8 +42,7 @@ router.put(
 router.delete(
   '/:id',
   authenticate,
-  getCurrentUser,
-  requireAdmin,
+  requirePermission('products:delete'),
   idParamValidation,
   validate,
   deleteProduct

@@ -6,7 +6,7 @@ import {
   getUserById,
   updateUserRole,
 } from '../controllers/userController.js';
-import { authenticate, getCurrentUser, requireAdmin } from '../middleware/auth.js';
+import { authenticate, requirePermission, requireSuperAdmin } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import {
   updateProfileValidation,
@@ -17,15 +17,15 @@ import {
 const router = express.Router();
 
 // All user routes require authentication
-router.use(authenticate, getCurrentUser);
+router.use(authenticate);
 
 // Current user routes
 router.get('/profile', getProfile);
 router.put('/profile', updateProfileValidation, validate, updateProfile);
 
 // Admin only routes
-router.get('/', requireAdmin, getAllUsers);
-router.get('/:id', requireAdmin, idParamValidation, validate, getUserById);
-router.patch('/:id/role', requireAdmin, updateUserRoleValidation, validate, updateUserRole);
+router.get('/', requirePermission('users:read'), getAllUsers);
+router.get('/:id', requirePermission('users:read'), idParamValidation, validate, getUserById);
+router.patch('/:id/role', requireSuperAdmin, updateUserRoleValidation, validate, updateUserRole);
 
 export default router;

@@ -3,9 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -19,18 +21,15 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement actual authentication logic
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData),
-      // });
-
-      // Temporary mock login - redirect to dashboard
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      router.push("/dashboard");
+      const result = await login(formData.email, formData.password);
+      
+      if (result?.ok) {
+        router.push("/dashboard");
+      } else {
+        setError(result?.error || "Invalid credentials");
+      }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      setError(err.message || "An error occurred. Please try again.");
       console.error(err);
     } finally {
       setIsLoading(false);
