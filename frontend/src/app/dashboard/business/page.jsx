@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
-import BusinessOwnerDashboard from "@/components/dashboards/BusinessOwnerDashboard";
+import BusinessOwnerDashboard from "@/components/dashboards/businessowner/BusinessOwnerDashboard";
 
 export default function BusinessDashboardPage() {
   const { user } = useAuth();
