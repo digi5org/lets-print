@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import ClientDashboard from "@/components/dashboards/ClientDashboard";
+import ClientDashboard from "@/components/dashboards/client/ClientDashboard";
 import BusinessOwnerDashboard from "@/components/dashboards/BusinessOwnerDashboard";
 import ProductionOwnerDashboard from "@/components/dashboards/ProductionOwnerDashboard";
 import SuperAdminDashboard from "@/components/dashboards/SuperAdminDashboard";
@@ -10,7 +10,7 @@ import SuperAdminDashboard from "@/components/dashboards/SuperAdminDashboard";
 // Mock user data - in production, this would come from auth context or API
 const MOCK_USER = {
   name: "Sarah Mitchell",
-  role: "superadmin", // Change this to test different roles: "business_owner", "production_owner", "superadmin"
+  role: "client", // Change this to test different roles: "business_owner", "production_owner", "superadmin"
 };
 
 export default function DashboardPage() {
