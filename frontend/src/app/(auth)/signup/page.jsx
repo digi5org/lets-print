@@ -3,17 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
-
+import { useAuth } from "@/contexts/AuthContext";
+import { registerUser } from "@/lib/apiClient";
 
 export default function SignupPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
-    role: "client",
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -36,18 +36,18 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      // TODO: Implement actual registration logic
-      // const response = await fetch('/api/auth/signup', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData),
-      // });
+      // Register the user
+      await registerUser({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
 
-      // Temporary mock signup - redirect to login
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      router.push("/login");
+      // Auto-login after successful registration
+      await login(formData.email, formData.password);
+      router.push("/dashboard");
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      setError(err.message || "An error occurred. Please try again.");
       console.error(err);
     } finally {
       setIsLoading(false);

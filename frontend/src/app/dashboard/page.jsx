@@ -1,40 +1,31 @@
 "use client";
 
-import { useState } from "react";
-import DashboardLayout from "@/components/DashboardLayout";
-import ClientDashboard from "@/components/dashboards/ClientDashboard";
-import BusinessOwnerDashboard from "@/components/dashboards/BusinessOwnerDashboard";
-import ProductionOwnerDashboard from "@/components/dashboards/ProductionOwnerDashboard";
-import SuperAdminDashboard from "@/components/dashboards/SuperAdminDashboard";
-
-// Mock user data - in production, this would come from auth context or API
-const MOCK_USER = {
-  name: "Sarah Mitchell",
-  role: "superadmin", // Change this to test different roles: "business_owner", "production_owner", "superadmin"
-};
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function DashboardPage() {
-  const [user] = useState(MOCK_USER);
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
 
-  // Render the appropriate dashboard based on user role
-  const renderDashboardContent = () => {
-    switch (user.role) {
-      case "client":
-        return <ClientDashboard userName={user.name} />;
-      case "business_owner":
-        return <BusinessOwnerDashboard userName={user.name} />;
-      case "production_owner":
-        return <ProductionOwnerDashboard userName={user.name} />;
-      case "superadmin":
-        return <SuperAdminDashboard userName={user.name} />;
-      default:
-        return <ClientDashboard userName={user.name} />;
+  useEffect(() => {
+    if (!isLoading && user) {
+      // Redirect to role-specific dashboard
+      const roleMapping = {
+        'super_admin': '/dashboard/admin',
+        'business_owner': '/dashboard/business',
+        'production_owner': '/dashboard/production',
+        'client': '/dashboard/client'
+      };
+
+      const targetRoute = roleMapping[user.roleName] || '/dashboard/client';
+      router.replace(targetRoute);
     }
-  };
+  }, [user, isLoading, router]);
 
   return (
-    <DashboardLayout userRole={user.role} userName={user.name}>
-      {renderDashboardContent()}
-    </DashboardLayout>
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
   );
 }

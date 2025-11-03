@@ -1,15 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { ApiClient } from "@/lib/apiClient";
 
 export default function SuperAdminDashboard({ userName }) {
+  const { session } = useAuth();
   const [showUserModal, setShowUserModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [tenants, setTenants] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  // Load data from backend API
+  const loadData = useCallback(async () => {
+    if (!session?.accessToken) return;
+    
+    try {
+      const api = new ApiClient(session.accessToken);
+      const [usersData, rolesData, tenantsData] = await Promise.all([
+        api.get("/api/admin/users"),
+        api.get("/api/admin/roles"),
+        api.get("/api/admin/tenants"),
+      ]);
+      
+      setUsers(usersData.users || []);
+      setRoles(rolesData.roles || []);
+      setTenants(tenantsData.tenants || []);
+    } catch (error) {
+      console.error("Failed to load data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [session?.accessToken]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Calculate stats from real data
   const stats = [
-    { name: "Total Users", value: "342", change: "+28", changeType: "positive" },
-    { name: "Active Businesses", value: "45", change: "+5", changeType: "positive" },
+    { name: "Total Users", value: users.length.toString(), change: "+28", changeType: "positive" },
+    { name: "Active Businesses", value: tenants.length.toString(), change: "+5", changeType: "positive" },
     { name: "Production Facilities", value: "8", change: "+1", changeType: "positive" },
     { name: "Monthly Revenue", value: "$45,230", change: "+22%", changeType: "positive" },
   ];
@@ -19,64 +53,6 @@ export default function SuperAdminDashboard({ userName }) {
     { name: "API Response Time", value: "124ms", status: "Good" },
     { name: "Storage Used", value: "342 GB / 1 TB", status: "Normal" },
     { name: "Active Sessions", value: "156", status: "Normal" },
-  ];
-
-  const users = [
-    { 
-      id: 1, 
-      name: "John Doe",
-      email: "john@example.com", 
-      role: "Client",
-      business: "N/A",
-      subscription: "Basic",
-      status: "Active",
-      joinedDate: "2025-08-15",
-      lastActive: "2 hours ago"
-    },
-    { 
-      id: 2, 
-      name: "Sarah Smith",
-      email: "sarah@printhub.com", 
-      role: "Business Owner",
-      business: "PrintHub Co",
-      subscription: "Professional",
-      status: "Active",
-      joinedDate: "2025-06-20",
-      lastActive: "1 hour ago"
-    },
-    { 
-      id: 3, 
-      name: "Mike Johnson",
-      email: "mike@printfacility.com", 
-      role: "Production Owner",
-      business: "PrintFacility Inc",
-      subscription: "Enterprise",
-      status: "Active",
-      joinedDate: "2025-05-10",
-      lastActive: "30 minutes ago"
-    },
-    { 
-      id: 4, 
-      name: "Emily Davis",
-      email: "emily@quickprint.com", 
-      role: "Business Owner",
-      business: "QuickPrint Inc",
-      subscription: "Professional",
-      status: "Active",
-      joinedDate: "2025-07-22",
-      lastActive: "5 hours ago"
-    },
-    { 
-      id: 5, 
-      name: "Robert Wilson",
-      email: "robert@example.com", 
-      role: "Client",
-      business: "N/A",
-      subscription: "Basic",
-      status: "Suspended",
-      joinedDate: "2025-09-01",
-      lastActive: "2 days ago"
-    },
   ];
 
   const subscriptionPlans = [
@@ -125,12 +101,16 @@ export default function SuperAdminDashboard({ userName }) {
 
   const getRoleColor = (role) => {
     switch (role) {
+      case "client":
       case "Client":
         return "bg-blue-100 text-blue-800";
+      case "business_owner":
       case "Business Owner":
         return "bg-purple-100 text-purple-800";
+      case "production_owner":
       case "Production Owner":
         return "bg-green-100 text-green-800";
+      case "super_admin":
       case "SuperAdmin":
         return "bg-red-100 text-red-800";
       default:
@@ -181,6 +161,14 @@ export default function SuperAdminDashboard({ userName }) {
         return null;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -335,12 +323,12 @@ export default function SuperAdminDashboard({ userName }) {
                     {user.email}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(user.role)}`}>
-                      {user.role}
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(user.role?.name || 'Client')}`}>
+                      {user.role?.name || 'Client'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {user.business}
+                    {user.tenant?.name || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                     <button 
@@ -350,16 +338,16 @@ export default function SuperAdminDashboard({ userName }) {
                       }}
                       className="text-blue-600 hover:text-blue-800"
                     >
-                      {user.subscription}
+                      {user.subscription || 'Basic'}
                     </button>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(user.status)}`}>
-                      {user.status}
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(user.isActive ? 'Active' : 'Suspended')}`}>
+                      {user.isActive ? 'Active' : 'Suspended'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {user.lastActive}
+                    {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : 'Never'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                     <button 
