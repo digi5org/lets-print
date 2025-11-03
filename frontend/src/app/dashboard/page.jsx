@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import DashboardLayout from "@/components/DashboardLayout";
 import ClientDashboard from '@/components/dashboards/client/ClientDashboard'
 import BusinessOwnerDashboard from '@/components/dashboards/businessowner/BusinessOwnerDashboard'
 import ProductionOwnerDashboard from '@/components/dashboards/productionowner/ProductionOwnerDashboard'
@@ -32,9 +31,5 @@ export default function DashboardPage() {
     }
   };
 
-  return (
-    <DashboardLayout userRole={user.role} userName={user.name}>
-      {renderDashboardContent()}
-    </DashboardLayout>
-  );
+  return renderDashboardContent();
 }
