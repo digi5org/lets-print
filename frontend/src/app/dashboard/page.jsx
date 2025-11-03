@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import ClientDashboard from "@/components/dashboards/client/ClientDashboard";
-import BusinessOwnerDashboard from "@/components/dashboards/BusinessOwnerDashboard";
-import ProductionOwnerDashboard from "@/components/dashboards/ProductionOwnerDashboard";
-import SuperAdminDashboard from "@/components/dashboards/SuperAdminDashboard";
+import ClientDashboard from '@/components/dashboards/client/ClientDashboard'
+import BusinessOwnerDashboard from '@/components/dashboards/businessowner/BusinessOwnerDashboard'
+import ProductionOwnerDashboard from '@/components/dashboards/productionowner/ProductionOwnerDashboard'
+import SuperAdminDashboard from '@/components/dashboards/superadmin/SuperAdminDashboard'
 
 // Mock user data - in production, this would come from auth context or API
 const MOCK_USER = {
