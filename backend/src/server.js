@@ -4,13 +4,13 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
-import { middleware as supertokensMiddleware, errorHandler as supertokensErrorHandler } from 'supertokens-node/framework/express/index.js';
 
 // Import configurations
-import { initSuperTokens } from './config/supertokens.js';
 import prisma from './config/database.js';
 
 // Import routes
+import authRoutes from './routes/authRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import designRoutes from './routes/designRoutes.js';
@@ -21,9 +21,6 @@ import { errorHandler, notFound } from './middleware/errorHandler.js';
 
 // Load environment variables
 dotenv.config();
-
-// Initialize SuperTokens
-initSuperTokens();
 
 // Create Express app
 const app = express();
@@ -49,9 +46,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/api', limiter);
 
-// SuperTokens middleware
-app.use(supertokensMiddleware());
-
 // Health check
 app.get('/health', (req, res) => {
   res.json({
@@ -62,13 +56,12 @@ app.get('/health', (req, res) => {
 });
 
 // API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/designs', designRoutes);
 app.use('/api/users', userRoutes);
-
-// SuperTokens error handling middleware
-app.use(supertokensErrorHandler());
 
 // 404 handler
 app.use(notFound);

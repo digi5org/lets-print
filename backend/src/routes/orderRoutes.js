@@ -6,7 +6,7 @@ import {
   updateOrderStatus,
   cancelOrder,
 } from '../controllers/orderController.js';
-import { authenticate, getCurrentUser, requireAdmin } from '../middleware/auth.js';
+import { authenticate, requirePermission } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import {
   createOrderValidation,
@@ -17,18 +17,18 @@ import {
 const router = express.Router();
 
 // All order routes require authentication
-router.use(authenticate, getCurrentUser);
+router.use(authenticate);
 
 // User and Admin routes
 router.get('/', getAllOrders);
 router.get('/:id', idParamValidation, validate, getOrderById);
-router.post('/', createOrderValidation, validate, createOrder);
+router.post('/', requirePermission('orders:create'), createOrderValidation, validate, createOrder);
 router.post('/:id/cancel', idParamValidation, validate, cancelOrder);
 
-// Admin only routes
+// Admin/Production owner routes - can update order status
 router.patch(
   '/:id/status',
-  requireAdmin,
+  requirePermission('orders:update'),
   updateOrderStatusValidation,
   validate,
   updateOrderStatus

@@ -10,11 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  ADMIN
-  USER
-}
-
 enum OrderStatus {
   PENDING
   PROCESSING
@@ -23,19 +18,94 @@ enum OrderStatus {
   CANCELLED
 }
 
-model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  name          String?
-  role          Role     @default(USER)
-  supertokensId String?  @unique
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+// Role model for RBAC system
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique // super_admin, business_owner, production_owner, client
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+// Permission model for fine-grained access control
+model Permission {
+  id          String   @id @default(uuid())
+  name        String   @unique // e.g., "create_product", "manage_users", "view_orders"
+  description String?
+  resource    String   // e.g., "products", "users", "orders"
+  action      String   // e.g., "create", "read", "update", "delete"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  roles       RolePermission[]
+
+  @@map("permissions")
+  @@index([resource, action])
+}
+
+// Many-to-many relationship between Roles and Permissions
+model RolePermission {
+  id           String     @id @default(uuid())
+  roleId       String
+  permissionId String
+  createdAt    DateTime   @default(now())
+  
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+  @@index([roleId])
+  @@index([permissionId])
+}
+
+// Tenant model for multi-tenant support (for business_owner)
+model Tenant {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique // URL-friendly identifier
+  domain      String?  @unique // Custom domain if any
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  users       User[]
+  products    Product[]
+
+  @@map("tenants")
+}
+
+// Updated User model with RBAC and multi-tenant support
+model User {
+  id                    String    @id @default(uuid())
+  email                 String    @unique
+  password              String?   // Bcrypt hashed password (nullable for pending users)
+  name                  String?
+  roleId                String
+  tenantId              String?   // For business_owner and client users
+  isActive              Boolean   @default(true)
+  emailVerified         Boolean   @default(false)
+  verificationToken     String?   @unique // Token for email verification
+  verificationTokenExp  DateTime? // Token expiration time
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  lastLoginAt           DateTime?
+  
+  role          Role      @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  tenant        Tenant?   @relation(fields: [tenantId], references: [id], onDelete: SetNull)
   orders        Order[]
   designs       Design[]
 
   @@map("users")
+  @@index([roleId])
+  @@index([tenantId])
+  @@index([email])
+  @@index([verificationToken])
 }
 
 model Product {
@@ -46,12 +116,15 @@ model Product {
   price       Float
   imageUrl    String?
   isActive    Boolean  @default(true)
+  tenantId    String?  // Products can belong to a specific tenant
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id], onDelete: SetNull)
   orderItems  OrderItem[]
 
   @@map("products")
+  @@index([tenantId])
 }
 
 model Order {

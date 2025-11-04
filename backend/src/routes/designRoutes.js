@@ -6,7 +6,7 @@ import {
   updateDesign,
   deleteDesign,
 } from '../controllers/designController.js';
-import { authenticate, getCurrentUser } from '../middleware/auth.js';
+import { authenticate, requirePermission } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import {
   createDesignValidation,
@@ -17,12 +17,12 @@ import {
 const router = express.Router();
 
 // All design routes require authentication
-router.use(authenticate, getCurrentUser);
+router.use(authenticate);
 
 router.get('/', getAllDesigns);
 router.get('/:id', idParamValidation, validate, getDesignById);
-router.post('/', createDesignValidation, validate, createDesign);
-router.put('/:id', updateDesignValidation, validate, updateDesign);
-router.delete('/:id', idParamValidation, validate, deleteDesign);
+router.post('/', requirePermission('designs:create'), createDesignValidation, validate, createDesign);
+router.put('/:id', requirePermission('designs:update'), updateDesignValidation, validate, updateDesign);
+router.delete('/:id', requirePermission('designs:delete'), idParamValidation, validate, deleteDesign);
 
 export default router;
