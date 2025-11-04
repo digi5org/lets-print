@@ -336,3 +336,72 @@ export const changePassword = async (req, res, next) => {
     next(error);
   }
 };
+
+/**
+ * Verify email and set password for new user
+ * Used when admin creates a user account
+ */
+export const verifyEmail = async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token and password are required',
+      });
+    }
+
+    // Find user by verification token
+    const user = await prisma.user.findUnique({
+      where: { verificationToken: token },
+      include: { role: true },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification token',
+      });
+    }
+
+    // Check if token is expired (48 hours)
+    if (new Date() > user.verificationTokenExp) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification token has expired. Please contact admin for a new invitation.',
+      });
+    }
+
+    // Validate password strength
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters long and contain uppercase, lowercase, and number',
+      });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Update user: set password, mark email as verified, activate account, clear token
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        emailVerified: true,
+        isActive: true,
+        verificationToken: null,
+        verificationTokenExp: null,
+      },
+    });
+
+    res.json({
+      success: true,
+      message: 'Email verified successfully. You can now login with your credentials.',
+    });
+  } catch (error) {
+    next(error);
+  }
+};

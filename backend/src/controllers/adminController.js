@@ -1,10 +1,19 @@
 import prisma from '../config/database.js';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+import { sendVerificationEmail } from '../services/emailService.js';
+
+/**
+ * Generate a secure random token
+ */
+const generateVerificationToken = () => {
+  return crypto.randomBytes(32).toString('hex');
+};
 
 /**
  * Create a new user (super_admin only)
  * Can create business_owner, production_owner users
- * Clients should use public signup route
+ * Super admin sets password directly - no email verification
  */
 export const createUser = async (req, res, next) => {
   try {
@@ -59,7 +68,7 @@ export const createUser = async (req, res, next) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new user
+    // Create new user with password set by admin
     const user = await prisma.user.create({
       data: {
         email,
@@ -67,8 +76,8 @@ export const createUser = async (req, res, next) => {
         name,
         roleId: role.id,
         tenantId: tenantId || null,
-        isActive: true,
-        emailVerified: true,
+        isActive: true, // User active immediately
+        emailVerified: true, // Mark as verified since admin created it
       },
       include: {
         role: true,
@@ -81,7 +90,7 @@ export const createUser = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: `${roleName} user created successfully`,
+      message: `User created successfully`,
       data: userWithoutPassword,
     });
   } catch (error) {
@@ -129,17 +138,6 @@ export const getAllUsers = async (req, res, next) => {
 
     const users = await prisma.user.findMany({
       where,
-      include: {
-        role: true,
-        tenant: true,
-        _count: {
-          select: {
-            orders: true,
-            designs: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
       select: {
         id: true,
         email: true,
@@ -151,10 +149,27 @@ export const getAllUsers = async (req, res, next) => {
         createdAt: true,
         updatedAt: true,
         lastLoginAt: true,
-        role: true,
-        tenant: true,
-        _count: true,
+        role: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        tenant: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        _count: {
+          select: {
+            orders: true,
+            designs: true,
+          },
+        },
       },
+      orderBy: { createdAt: 'desc' },
     });
 
     res.json({

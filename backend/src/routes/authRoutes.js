@@ -6,6 +6,7 @@ import {
   getProfile,
   verifyToken,
   changePassword,
+  verifyEmail,
 } from '../controllers/authController.js';
 import { authenticate } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
@@ -93,6 +94,27 @@ router.post(
   ],
   validate,
   changePassword
+);
+
+/**
+ * @route   POST /api/auth/verify-email
+ * @desc    Verify email and set password for new user
+ * @access  Public
+ */
+router.post(
+  '/verify-email',
+  [
+    body('token')
+      .notEmpty()
+      .withMessage('Verification token is required'),
+    body('password')
+      .isLength({ min: 8 })
+      .withMessage('Password must be at least 8 characters long')
+      .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+      .withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
+  ],
+  validate,
+  verifyEmail
 );
 
 export default router;
