@@ -5,6 +5,9 @@ import Credentials from "next-auth/providers/credentials";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  // Secret for JWT encryption (REQUIRED)
+  secret: process.env.NEXTAUTH_SECRET,
+
   // Use JWT strategy (no database sessions)
   session: {
     strategy: "jwt",
