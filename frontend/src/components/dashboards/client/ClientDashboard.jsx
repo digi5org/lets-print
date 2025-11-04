@@ -1,12 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import TrackShipment from "./TrackShipment";
+import DesignLibrary from "./DesignLibrary";
+import InvoicesPayments from "./InvoicesPayments";
+import { clientSidebarItems } from "@/config/navigation";
 
 export default function ClientDashboard({ userName }) {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [orderDetailModal, setOrderDetailModal] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeView, setActiveView] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [sortBy, setSortBy] = useState('date');
@@ -257,113 +261,142 @@ export default function ClientDashboard({ userName }) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Page Header with Actions */}
-      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-xl shadow-sm p-8 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Welcome back, {userName.split(' ')[0]}!</h1>
-            <p className="text-blue-100">
-              Here&apos;s your order activity and account overview
-            </p>
-          </div>
-          <div className="hidden md:flex gap-3">
-            <button 
-              onClick={() => setUploadModalOpen(true)}
-              className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-4 py-2 rounded-lg transition-all flex items-center gap-2"
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+        {/* Logo/Brand Area */}
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-xl font-bold text-gray-900">Let&apos;s Print</h2>
+          <p className="text-xs text-gray-500 mt-1">Client Portal</p>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          {clientSidebarItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveView(item.id)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                activeView === item.id
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-              Upload Design
+              {item.icon}
+              <span className="flex-1 text-left">{item.label}</span>
+              {item.badge && (
+                <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                  activeView === item.id
+                    ? 'bg-white text-blue-600'
+                    : 'bg-red-500 text-white'
+                }`}>
+                  {item.badge}
+                </span>
+              )}
             </button>
-            <button className="bg-white text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              New Order
-            </button>
+          ))}
+        </nav>
+
+        {/* User Info at Bottom */}
+        <div className="p-4 border-t border-gray-200">
+          <div className="flex items-center gap-3 px-3 py-2">
+            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+              {userName.charAt(0)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
+              <p className="text-xs text-gray-500">Client</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <div
-            key={stat.name}
-            className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all cursor-pointer"
-          >
-            <div className="p-5">
-              <div className="flex items-center justify-between mb-3">
-                <div className={`w-12 h-12 rounded-lg ${colorClasses[stat.color]} flex items-center justify-center border`}>
-                  {stat.icon}
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-8 space-y-6">
+          {/* Dashboard View */}
+          {activeView === 'dashboard' && (
+            <>
+              {/* Page Header with Actions */}
+              <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-xl shadow-sm p-8 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h1 className="text-3xl font-bold mb-2">Welcome back, {userName.split(' ')[0]}!</h1>
+                    <p className="text-blue-100">
+                      Here&apos;s your order activity and account overview
+                    </p>
+                  </div>
+                  <div className="hidden md:flex gap-3">
+                    <button 
+                      onClick={() => setUploadModalOpen(true)}
+                      className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-4 py-2 rounded-lg transition-all flex items-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      Upload Design
+                    </button>
+                    <button className="bg-white text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      New Order
+                    </button>
+                  </div>
                 </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">{stat.name}</p>
-                <p className="text-2xl font-bold text-gray-900 mb-2">{stat.value}</p>
-                {stat.subtext && (
-                  <p className="text-xs text-gray-500 mb-1">{stat.subtext}</p>
-                )}
-                <p
-                  className={`text-xs font-medium ${
-                    stat.changeType === "positive" 
-                      ? "text-green-600" 
-                      : stat.changeType === "warning"
-                      ? "text-orange-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {stat.change}
-                </p>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                {stats.map((stat) => (
+                  <div
+                    key={stat.name}
+                    className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all cursor-pointer"
+                  >
+                    <div className="p-5">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className={`w-12 h-12 rounded-lg ${colorClasses[stat.color]} flex items-center justify-center border`}>
+                          {stat.icon}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 mb-1">{stat.name}</p>
+                        <p className="text-2xl font-bold text-gray-900 mb-2">{stat.value}</p>
+                        {stat.subtext && (
+                          <p className="text-xs text-gray-500 mb-1">{stat.subtext}</p>
+                        )}
+                        <p
+                          className={`text-xs font-medium ${
+                            stat.changeType === "positive" 
+                              ? "text-green-600" 
+                              : stat.changeType === "warning"
+                              ? "text-orange-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {stat.change}
+                        </p>
+                      </div>
+                    </div>
+                    {stat.changeType === "positive" && (
+                      <div className="h-1 bg-gradient-to-r from-green-400 to-green-600"></div>
+                    )}
+                    {stat.changeType === "warning" && (
+                      <div className="h-1 bg-gradient-to-r from-orange-400 to-orange-600"></div>
+                    )}
+                  </div>
+                ))}
               </div>
-            </div>
-            {stat.changeType === "positive" && (
-              <div className="h-1 bg-gradient-to-r from-green-400 to-green-600"></div>
-            )}
-            {stat.changeType === "warning" && (
-              <div className="h-1 bg-gradient-to-r from-orange-400 to-orange-600"></div>
-            )}
-          </div>
-        ))}
-      </div>
 
-      {/* Tabs Navigation */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-1 px-6" aria-label="Tabs">
-            {[
-              { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-              { id: 'orders', label: 'Orders', icon: '📦' },
-              { id: 'invoices', label: 'Invoices', icon: '📄' },
-              { id: 'products', label: 'Products', icon: '🛍️' }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-4 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors ${
-                  activeTab === tab.id
-                    ? 'border-blue-600 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <span>{tab.icon}</span>
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Dashboard Tab Content */}
-        {activeTab === 'dashboard' && (
+              {/* Dashboard Content */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="p-6 space-y-6">
             {/* Recent Orders */}
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900">Recent Orders</h2>
                 <button 
-                  onClick={() => setActiveTab('orders')}
+                  onClick={() => setActiveView('my-orders')}
                   className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
                 >
                   View All
@@ -503,10 +536,13 @@ export default function ClientDashboard({ userName }) {
               </div>
             </div>
           </div>
-        )}
+              </div>
+            </>
+          )}
 
         {/* Orders Tab */}
-        {activeTab === 'orders' && (
+        {activeView === 'my-orders' && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="p-6">
             {/* Search and Filters */}
             <div className="mb-6 flex flex-col sm:flex-row gap-4">
@@ -630,75 +666,17 @@ export default function ClientDashboard({ userName }) {
               )}
             </div>
           </div>
-        )}
-
-        {/* Invoices Tab */}
-        {activeTab === 'invoices' && (
-          <div className="p-6">
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Invoice</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Order</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Due Date</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Amount</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {invoices.map((invoice) => (
-                    <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-4">
-                        <span className="text-sm font-medium text-blue-600">{invoice.id}</span>
-                      </td>
-                      <td className="px-4 py-4">
-                        <span className="text-sm text-gray-600">{invoice.orderId}</span>
-                      </td>
-                      <td className="px-4 py-4">
-                        <span className="text-sm text-gray-600">{invoice.date}</span>
-                      </td>
-                      <td className="px-4 py-4">
-                        <span className="text-sm text-gray-600">{invoice.dueDate}</span>
-                      </td>
-                      <td className="px-4 py-4">
-                        <span className="text-sm font-semibold text-gray-900">{invoice.amount}</span>
-                      </td>
-                      <td className="px-4 py-4">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                            invoice.status === "Paid"
-                              ? "bg-green-100 text-green-700"
-                              : invoice.status === "Pending"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {invoice.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 text-right space-x-3">
-                        <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                          Download
-                        </button>
-                        {invoice.status !== "Paid" && (
-                          <button className="text-sm text-green-600 hover:text-green-800 font-medium">
-                            Pay Now
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
           </div>
         )}
 
+        {/* Invoices Tab */}
+        {activeView === 'invoices' && (
+          <InvoicesPayments onBack={() => setActiveView('dashboard')} />
+        )}
+
         {/* Products Tab */}
-        {activeTab === 'products' && (
+        {activeView === 'browse-products' && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="p-6 space-y-6">
             <div className="flex gap-4">
               <input
@@ -735,10 +713,54 @@ export default function ClientDashboard({ userName }) {
                     </button>
                   </div>
                 </div>
-              ))}
+                ))}
             </div>
           </div>
+          </div>
         )}
+
+        {/* New Order View */}
+        {activeView === 'new-order' && (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Create New Order</h2>
+            <p className="text-gray-600">New order form will be displayed here.</p>
+          </div>
+        )}
+
+        {/* Track Shipment View */}
+        {activeView === 'track-shipment' && (
+          <TrackShipment onBack={() => setActiveView('dashboard')} />
+        )}
+
+        {/* Design Library View */}
+        {activeView === 'design-library' && (
+          <DesignLibrary onBack={() => setActiveView('dashboard')} />
+        )}
+
+        {/* Support View */}
+        {activeView === 'support' && (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Support</h2>
+            <p className="text-gray-600">Support center will be displayed here.</p>
+          </div>
+        )}
+
+        {/* Tickets View */}
+        {activeView === 'tickets' && (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Support Tickets</h2>
+            <p className="text-gray-600">Your support tickets will be displayed here.</p>
+          </div>
+        )}
+
+        {/* My Account View */}
+        {activeView === 'my-account' && (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">My Account</h2>
+            <p className="text-gray-600">Account settings will be displayed here.</p>
+          </div>
+        )}
+        </div>
       </div>
 
       {/* Order Detail Modal */}
