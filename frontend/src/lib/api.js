@@ -1,30 +1,21 @@
 // API utility functions for making HTTP requests to the backend
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api";
 const API_TIMEOUT = parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || "30000", 10);
 
-
-  timeout?: number;
-}
-
 class ApiError extends Error {
-  constructor(
-    public status: number,
-    public statusText: string,
-    message: string
-  ) {
+  constructor(status, statusText, message) {
     super(message);
     this.name = "ApiError";
+    this.status = status;
+    this.statusText = statusText;
   }
 }
 
 /**
  * Fetch with timeout support
  */
-async function fetchWithTimeout(
-  url: string,
-  options: RequestOptions = {}
-): Promise {
+async function fetchWithTimeout(url, options = {}) {
   const { timeout = API_TIMEOUT, ...fetchOptions } = options;
 
   const controller = new AbortController();
@@ -49,10 +40,7 @@ async function fetchWithTimeout(
 /**
  * Make an API request
  */
-async function apiRequest(
-  endpoint: string,
-  options: RequestOptions = {}
-): Promise {
+async function apiRequest(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
   
   // Add default headers
@@ -87,7 +75,7 @@ async function apiRequest(
 
     // Return empty object for 204 No Content
     if (response.status === 204) {
-      return {} as T;
+      return {};
     }
 
     return await response.json();
@@ -104,11 +92,11 @@ async function apiRequest(
  */
 export const api = {
   // GET request
-  get: (endpoint: string, options?: RequestOptions) =>
+  get: (endpoint, options) =>
     apiRequest(endpoint, { ...options, method: "GET" }),
 
   // POST request
-  post: (endpoint: string, data?: unknown, options?: RequestOptions) =>
+  post: (endpoint, data, options) =>
     apiRequest(endpoint, {
       ...options,
       method: "POST",
@@ -116,7 +104,7 @@ export const api = {
     }),
 
   // PUT request
-  put: (endpoint: string, data?: unknown, options?: RequestOptions) =>
+  put: (endpoint, data, options) =>
     apiRequest(endpoint, {
       ...options,
       method: "PUT",
@@ -124,7 +112,7 @@ export const api = {
     }),
 
   // PATCH request
-  patch: (endpoint: string, data?: unknown, options?: RequestOptions) =>
+  patch: (endpoint, data, options) =>
     apiRequest(endpoint, {
       ...options,
       method: "PATCH",
@@ -132,7 +120,7 @@ export const api = {
     }),
 
   // DELETE request
-  delete: (endpoint: string, options?: RequestOptions) =>
+  delete: (endpoint, options) =>
     apiRequest(endpoint, { ...options, method: "DELETE" }),
 };
 
@@ -140,10 +128,10 @@ export const api = {
  * Auth-specific API calls
  */
 export const authApi = {
-  login: (email: string, password: string) =>
+  login: (email, password) =>
     api.post("/auth/login", { email, password }),
 
-  signup: (data: { name: string; email: string; password: string; role: string }) =>
+  signup: (data) =>
     api.post("/auth/signup", data),
 
   logout: () => api.post("/auth/logout"),
@@ -157,20 +145,20 @@ export const authApi = {
  * Orders API calls
  */
 export const ordersApi = {
-  getAll: (params?: Record {
+  getAll: (params) => {
     const queryString = params ? `?${new URLSearchParams(params)}` : "";
     return api.get(`/orders${queryString}`);
   },
 
-  getById: (id: string) => api.get(`/orders/${id}`),
+  getById: (id) => api.get(`/orders/${id}`),
 
   create: (data) => api.post("/orders", data),
 
-  update: (id: string, data) => api.put(`/orders/${id}`, data),
+  update: (id, data) => api.put(`/orders/${id}`, data),
 
-  delete: (id: string) => api.delete(`/orders/${id}`),
+  delete: (id) => api.delete(`/orders/${id}`),
 
-  updateStatus: (id: string, status: string) =>
+  updateStatus: (id, status) =>
     api.patch(`/orders/${id}/status`, { status }),
 };
 
@@ -178,27 +166,24 @@ export const ordersApi = {
  * Users API calls
  */
 export const usersApi = {
-  getAll: (params?: Record {
+  getAll: (params) => {
     const queryString = params ? `?${new URLSearchParams(params)}` : "";
     return api.get(`/users${queryString}`);
   },
 
-  getById: (id: string) => api.get(`/users/${id}`),
+  getById: (id) => api.get(`/users/${id}`),
 
   create: (data) => api.post("/users", data),
 
-  update: (id: string, data) => api.put(`/users/${id}`, data),
+  update: (id, data) => api.put(`/users/${id}`, data),
 
-  delete: (id: string) => api.delete(`/users/${id}`),
+  delete: (id) => api.delete(`/users/${id}`),
 };
 
 /**
  * File upload utility
  */
-export async function uploadFile(
-  file: File,
-  endpoint: string = "/upload"
-): Promise {
+export async function uploadFile(file, endpoint = "/upload") {
   const formData = new FormData();
   formData.append("file", file);
 
