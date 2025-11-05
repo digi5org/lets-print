@@ -220,32 +220,43 @@ export default function ClientDashboard({ userName }) {
     if (file) {
       setSelectedFile(file);
     }
+  };
 
-    if (!sections.some((section) => section.id === searchSection)) {
-      router.replace("/dashboard/client?section=myOrders", { scroll: false });
-      return;
+  const handleUpload = () => {
+    console.log("Uploading file:", selectedFile);
+    setUploadModalOpen(false);
+    setSelectedFile(null);
+  };
+
+  const handleViewOrder = (order) => {
+    setOrderDetailModal(order);
+  };
+
+  const handleExportOrders = () => {
+    console.log("Exporting orders...");
+  };
+
+  const filteredOrders = recentOrders.filter(order => {
+    const matchesSearch = order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         order.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFilter = filterStatus === 'all' || order.status.toLowerCase() === filterStatus.toLowerCase();
+    return matchesSearch && matchesFilter;
+  });
+
+  const sortedOrders = [...filteredOrders].sort((a, b) => {
+    if (sortBy === 'date') {
+      return new Date(b.date) - new Date(a.date);
+    } else if (sortBy === 'amount') {
+      return parseFloat(b.total.replace('$', '')) - parseFloat(a.total.replace('$', ''));
     }
+    return 0;
+  });
 
-    setActiveSection(searchSection);
-  }, [searchSection, router]);
-
-  const indicatorClass = (indicator) => {
-    if (indicator === "positive") return "text-green-600";
-    if (indicator === "warning") return "text-orange-600";
-    return "text-gray-600";
-  };
-
-  const selectSection = (sectionId) => {
-    router.replace(`/dashboard/client?section=${sectionId}`, { scroll: false });
-  };
-
-  const handleTrackOrder = (order) => {
-    setTrackingOrder(order);
-    selectSection("trackShipment");
-  };
-
-  const handleRequestOrder = () => {
-    selectSection("browseProducts");
+  const colorClasses = {
+    blue: "bg-blue-50 text-blue-600 border-blue-100",
+    green: "bg-green-50 text-green-600 border-green-100",
+    purple: "bg-purple-50 text-purple-600 border-purple-100",
+    orange: "bg-orange-50 text-orange-600 border-orange-100",
   };
 
   return (
@@ -297,7 +308,7 @@ export default function ClientDashboard({ userName }) {
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto">
