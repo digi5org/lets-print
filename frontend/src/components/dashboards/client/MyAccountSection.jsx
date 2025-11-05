@@ -14,6 +14,7 @@ export default function MyAccountSection({ profile }) {
         <p className="text-sm text-gray-500">Update personal details, billing preferences, and security options.</p>
       </div>
 
+
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="rounded-xl border border-gray-200 bg-white p-6">
           <h4 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Profile</h4>

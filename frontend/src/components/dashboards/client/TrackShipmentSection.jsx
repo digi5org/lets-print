@@ -23,6 +23,7 @@ function getCurrentStage(status) {
   }
 }
 
+
 export default function TrackShipmentSection({ orders = [], selectedOrder, onSelectOrder }) {
   const activeStage = useMemo(() => {
     if (!selectedOrder) {
@@ -45,7 +46,7 @@ export default function TrackShipmentSection({ orders = [], selectedOrder, onSel
               const order = orders.find((item) => item.id === event.target.value);
               onSelectOrder?.(order || null);
             }}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="" disabled>
               Choose an order

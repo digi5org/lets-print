@@ -15,6 +15,7 @@ export default function TicketsSection({ tickets = [], onCreateTicket }) {
     if (filter === "closed") return ticket.status === "Closed";
     return true;
   });
+  
 
   return (
     <div className="space-y-6">

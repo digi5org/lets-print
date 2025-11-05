@@ -22,6 +22,7 @@ export default function MyOrdersSection({ orders = [], onViewOrder, onTrackOrder
         order.id.toLowerCase().includes(query) ||
         order.title.toLowerCase().includes(query);
 
+        
       const matchesStatus =
         filterStatus === "all" ||
         order.status.toLowerCase() === filterStatus.toLowerCase();

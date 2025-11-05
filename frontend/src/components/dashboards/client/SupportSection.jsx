@@ -8,6 +8,7 @@ export default function SupportSection({ channels = [], faqs = [], resources = [
         </p>
       </div>
 
+
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-4">
           <h4 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Contact Options</h4>

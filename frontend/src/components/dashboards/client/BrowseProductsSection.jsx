@@ -14,6 +14,7 @@ export default function BrowseProductsSection({ products = [], onOrderProduct })
             placeholder="Search products"
             className="w-52 rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          
           <select className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm text-black focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="all">All categories</option>
             <option value="stationery">Stationery</option>
