@@ -1,248 +1,224 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import BrowseProductsSection from "./BrowseProductsSection";
-import DesignLibrarySection from "./DesignLibrarySection";
-import InvoicesPaymentsSection from "./InvoicesPaymentsSection";
-import MyAccountSection from "./MyAccountSection";
-import MyOrdersSection from "./MyOrdersSection";
-import SupportSection from "./SupportSection";
-import TicketsSection from "./TicketsSection";
-import TrackShipmentSection from "./TrackShipmentSection";
+import { useState } from "react";
+import TrackShipment from "./TrackShipment";
+import DesignLibrary from "./DesignLibrary";
+import InvoicesPayments from "./InvoicesPayments";
+import { clientSidebarItems } from "@/config/navigation";
 
-const stats = [
-  {
-    id: "activeOrders",
-    title: "Active Orders",
-    value: "5",
-    change: "2 currently in production",
-    indicator: "positive",
-    icon: (
-      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M5 11h14M7 15h10M9 19h6" />
-      </svg>
-    ),
-  },
-  {
-    id: "totalSpend",
-    title: "Total Spend (6 mo)",
-    value: "$12,450",
-    change: "+$1,200 vs. prior period",
-    indicator: "positive",
-    icon: (
-      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8-8 8-4-4-6 6" />
-      </svg>
-    ),
-  },
-  {
-    id: "approvals",
-    title: "Awaiting Approval",
-    value: "3",
-    change: "Design proofs pending",
-    indicator: "warning",
-    icon: (
-      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m9 12 2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-      </svg>
-    ),
-  },
-  {
-    id: "unpaidInvoices",
-    title: "Unpaid Invoices",
-    value: "$845",
-    change: "2 invoices due",
-    indicator: "warning",
-    icon: (
-      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M9 11h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.6a2 2 0 0 1 1.4.6l5.4 5.4a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2Z" />
-      </svg>
-    ),
-  },
-];
-
-
-const orders = [
-  {
-    id: "ORD-1023",
-    title: "Business Cards",
-    status: "Production",
-    date: "2024-12-10",
-    quantity: "500 cards",
-    total: "$450.00",
-    customer: "Tech Solutions Inc.",
-    deliveryDate: "2024-12-15",
-    notes: "Premium finish with gold foil",
-  },
-  {
-    id: "ORD-1018",
-    title: "Flyers - 500pc",
-    status: "Shipped",
-    date: "2024-12-08",
-    quantity: "500 units",
-    total: "$320.00",
-    customer: "Marketing Agency",
-    deliveryDate: "2024-12-12",
-    trackingNumber: "TRK123456789",
-  },
-  {
-    id: "ORD-1015",
-    title: "Banners",
-    status: "Delivered",
-    date: "2024-12-05",
-    quantity: "3 banners",
-    total: "$180.00",
-    customer: "Event Planners Co.",
-    deliveryDate: "2024-12-08",
-  },
-  {
-    id: "ORD-1012",
-    title: "Brochures",
-    status: "Delivered",
-    date: "2024-12-01",
-    quantity: "200 units",
-    total: "$290.00",
-    customer: "Real Estate Group",
-    deliveryDate: "2024-12-05",
-  },
-  {
-    id: "ORD-1008",
-    title: "Posters A2",
-    status: "Cancelled",
-    date: "2024-11-28",
-    quantity: "50 posters",
-    total: "$220.00",
-    customer: "Music Festival",
-    deliveryDate: "N/A",
-  },
-];
-
-const invoices = [
-  { id: "INV-2024-1023", orderId: "ORD-1023", date: "2024-12-10", amount: "$450.00", status: "Pending", dueDate: "2024-12-24" },
-  { id: "INV-2024-1018", orderId: "ORD-1018", date: "2024-12-08", amount: "$320.00", status: "Pending", dueDate: "2024-12-22" },
-  { id: "INV-2024-1015", orderId: "ORD-1015", date: "2024-12-05", amount: "$180.00", status: "Paid", dueDate: "2024-12-19" },
-  { id: "INV-2024-1012", orderId: "ORD-1012", date: "2024-12-01", amount: "$290.00", status: "Paid", dueDate: "2024-12-15" },
-];
-
-const products = [
-  { id: "prod-1", name: "Business Cards", category: "Stationery", price: "From $45", description: "Premium cards with multiple finishes." },
-  { id: "prod-2", name: "Flyers", category: "Marketing", price: "From $80", description: "Full color flyers for promotions." },
-  { id: "prod-3", name: "Banners", category: "Large Format", price: "From $120", description: "Durable banners for indoor and outdoor use." },
-  { id: "prod-4", name: "Brochures", category: "Marketing", price: "From $150", description: "Tri-fold brochures with professional finish." },
-  { id: "prod-5", name: "Posters", category: "Marketing", price: "From $95", description: "High-impact posters available in multiple sizes." },
-  { id: "prod-6", name: "Stickers", category: "Promotional", price: "From $60", description: "Custom die-cut stickers and labels." },
-];
-
-const designs = [
-  { id: "des-1", name: "Conference Brochure", category: "Marketing", status: "Approved", updatedAt: "Dec 9, 2024", fileType: "PDF", fileSize: "4.5 MB", version: "1.3", owner: "Maria Lopez" },
-  { id: "des-2", name: "Product Launch Flyer", category: "Campaign", status: "Waiting", updatedAt: "Dec 8, 2024", fileType: "AI", fileSize: "12.1 MB", version: "2.0", owner: "Daniel Kim" },
-  { id: "des-3", name: "Business Card Set", category: "Stationery", status: "Approved", updatedAt: "Dec 6, 2024", fileType: "PDF", fileSize: "2.2 MB", version: "4.1", owner: "Julia Chen" },
-  { id: "des-4", name: "Holiday Posters", category: "Seasonal", status: "Archived", updatedAt: "Nov 20, 2024", fileType: "PSD", fileSize: "18.4 MB", version: "3.0", owner: "Ian Wright" },
-  { id: "des-5", name: "Stickers Pack", category: "Promotional", status: "Approved", updatedAt: "Nov 18, 2024", fileType: "EPS", fileSize: "6.9 MB", version: "1.0", owner: "Maria Lopez" },
-  { id: "des-6", name: "Event Badge", category: "Events", status: "Waiting", updatedAt: "Nov 14, 2024", fileType: "AI", fileSize: "3.2 MB", version: "2.1", owner: "Daniel Kim" },
-];
-
-const supportChannels = [
-  { id: "chat", title: "Live chat", description: "Instant help for quick questions and order updates.", availability: "Mon-Fri", cta: "Start chat" },
-  { id: "email", title: "Email support", description: "Prefer email? We reply to most requests within a few hours.", availability: "24/7", cta: "Send email" },
-  { id: "call", title: "Schedule a call", description: "Book a 15-minute session with a print specialist.", availability: "By appointment", cta: "Book now" },
-];
-
-const supportResources = [
-  { id: "guide-1", title: "Preparing files for print", updatedAt: "Dec 2024" },
-  { id: "guide-2", title: "Understanding order statuses", updatedAt: "Nov 2024" },
-  { id: "guide-3", title: "How to manage design approvals", updatedAt: "Nov 2024" },
-];
-
-const supportFaqs = [
-  { id: "faq-1", question: "How long does production take?", answer: "Standard production time is 3 to 5 business days depending on the product." },
-  { id: "faq-2", question: "Can I reorder a previous job?", answer: "Yes. Use the design library or order history to reorder with saved specifications." },
-  { id: "faq-3", question: "When will I receive tracking information?", answer: "Tracking details are provided as soon as the order leaves production." },
-];
-
-const ticketSeed = [
-  {
-    id: "TCK-2041",
-    subject: "Color correction request for brochure",
-    status: "Open",
-    priority: "high",
-    preview: "Please adjust the blue tones to match our brand guidelines...",
-    updatedAt: "2 hours ago",
-    assignedTo: "Alex Jordan",
-    tags: ["Design", "Color"],
-  },
-  {
-    id: "TCK-2037",
-    subject: "Invoice clarification for November",
-    status: "Closed",
-    priority: "low",
-    preview: "Invoice INV-2024-1015 shows two line items we would like to review...",
-    updatedAt: "1 day ago",
-    assignedTo: "Finance Desk",
-    tags: ["Billing"],
-  },
-  {
-    id: "TCK-2031",
-    subject: "Shipping address update",
-    status: "Open",
-    priority: "medium",
-    preview: "Need to change the delivery address for order ORD-1018 before it ships...",
-    updatedAt: "3 days ago",
-    assignedTo: "Logistics Team",
-    tags: ["Shipping"],
-  },
-];
-
-const accountProfile = {
-  name: "Jamie Summers",
-  email: "jamie.summers@example.com",
-  company: "Tech Solutions Inc.",
-  tenant: "tech-solutions",
-  billing: {
-    defaultMethod: "Corporate card ending 4428",
-    recipient: "accounts-payable@example.com",
-    frequency: "Monthly",
-  },
-  preferences: {
-    requireApproval: true,
-  },
-  security: {
-    lastLogin: "Dec 10, 2024 at 08:42 AM",
-    mfaEnabled: true,
-    allowedIps: ["192.168.0.12", "192.168.0.13"],
-    sessionDuration: "7 days",
-  },
-};
-
-const sections = [
-  { id: "myOrders", label: "My Orders", description: "Monitor order progress and history." },
-  { id: "trackShipment", label: "Track Shipment", description: "Follow active deliveries in real time." },
-  { id: "designLibrary", label: "Design Library", description: "Manage artwork approvals." },
-  { id: "invoices", label: "Invoices & Payments", description: "Handle billing and payments." },
-  { id: "browseProducts", label: "Browse Products", description: "Discover print options." },
-  { id: "support", label: "Support", description: "Access guides and reach support." },
-  { id: "tickets", label: "Tickets", description: "Review support conversations." },
-  { id: "myAccount", label: "My Account", description: "Update profile and security." },
-];
-
-export default function ClientDashboard({ userName = "Client" }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const searchSection = searchParams?.get("section") ?? null;
-
-  const [activeSection, setActiveSection] = useState(() =>
-    sections.some((section) => section.id === searchSection) ? searchSection : "myOrders"
-  );
+export default function ClientDashboard({ userName }) {
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [orderDetailModal, setOrderDetailModal] = useState(null);
-  const [trackingOrder, setTrackingOrder] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [activeView, setActiveView] = useState('dashboard');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [sortBy, setSortBy] = useState('date');
+  const [showNotifications, setShowNotifications] = useState(false);
 
-  const firstName = userName.trim().split(" ")[0] || "Client";
+  const stats = [
+    { 
+      name: "Active Orders", 
+      value: "5", 
+      change: "2 in production", 
+      changeType: "positive",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      ),
+      color: "blue"
+    },
+    { 
+      name: "Total Spent", 
+      value: "$12,450", 
+      change: "+$1,200", 
+      changeType: "positive",
+      subtext: "Last 6 months",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        </svg>
+      ),
+      color: "green"
+    },
+    { 
+      name: "Pending Approval", 
+      value: "3", 
+      change: "Design proofs", 
+      changeType: "warning",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      color: "purple"
+    },
+    { 
+      name: "Unpaid Invoices", 
+      value: "$845", 
+      change: "2 invoices", 
+      changeType: "warning",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      ),
+      color: "orange"
+    },
+  ];
 
-  useEffect(() => {
-    if (!searchSection) {
-      router.replace("/dashboard/client?section=myOrders", { scroll: false });
-      return;
+  const recentOrders = [
+    { 
+      id: "ORD-1023", 
+      title: "Business Cards", 
+      status: "Production", 
+      date: "Dec 10, 2024",
+      quantity: "500 cards",
+      total: "$450.00",
+      customer: "Tech Solutions Inc.",
+      deliveryDate: "Dec 15, 2024",
+      notes: "Premium finish with gold foil"
+    },
+    { 
+      id: "ORD-1018", 
+      title: "Flyers - 500pc", 
+      status: "Shipped", 
+      date: "Dec 8, 2024",
+      quantity: "500 units",
+      total: "$320.00",
+      customer: "Marketing Agency",
+      deliveryDate: "Dec 12, 2024",
+      trackingNumber: "TRK123456789"
+    },
+    { 
+      id: "ORD-1015", 
+      title: "Banners", 
+      status: "Delivered", 
+      date: "Dec 5, 2024",
+      quantity: "3 banners",
+      total: "$180.00",
+      customer: "Event Planners Co.",
+      deliveryDate: "Dec 8, 2024"
+    },
+    { 
+      id: "ORD-1012", 
+      title: "Brochures", 
+      status: "Delivered", 
+      date: "Dec 1, 2024",
+      quantity: "200 units",
+      total: "$290.00",
+      customer: "Real Estate Group",
+      deliveryDate: "Dec 5, 2024"
+    },
+    { 
+      id: "ORD-1008", 
+      title: "Posters A2", 
+      status: "Cancelled", 
+      date: "Nov 28, 2024",
+      quantity: "50 posters",
+      total: "$220.00",
+      customer: "Music Festival",
+      deliveryDate: "N/A"
+    },
+  ];
+
+  const invoices = [
+    { 
+      id: "INV-2024-1023", 
+      orderId: "ORD-1023",
+      date: "Dec 10, 2024", 
+      amount: "$450.00", 
+      status: "Pending",
+      dueDate: "Dec 24, 2024"
+    },
+    { 
+      id: "INV-2024-1018", 
+      orderId: "ORD-1018",
+      date: "Dec 8, 2024", 
+      amount: "$320.00", 
+      status: "Pending",
+      dueDate: "Dec 22, 2024"
+    },
+    { 
+      id: "INV-2024-1015", 
+      orderId: "ORD-1015",
+      date: "Dec 5, 2024", 
+      amount: "$180.00", 
+      status: "Paid",
+      dueDate: "Dec 19, 2024"
+    },
+    { 
+      id: "INV-2024-1012", 
+      orderId: "ORD-1012",
+      date: "Dec 1, 2024", 
+      amount: "$290.00", 
+      status: "Paid",
+      dueDate: "Dec 15, 2024"
+    },
+  ];
+
+  const products = [
+    {
+      id: 1,
+      name: "Business Cards",
+      category: "Stationery",
+      price: "From $45",
+      image: "📇",
+      description: "Premium business cards with various finishes"
+    },
+    {
+      id: 2,
+      name: "Flyers",
+      category: "Marketing",
+      price: "From $80",
+      image: "📄",
+      description: "Eye-catching flyers for promotions"
+    },
+    {
+      id: 3,
+      name: "Banners",
+      category: "Large Format",
+      price: "From $120",
+      image: "🎯",
+      description: "Large format banners for events"
+    },
+    {
+      id: 4,
+      name: "Brochures",
+      category: "Marketing",
+      price: "From $150",
+      image: "📰",
+      description: "Professional brochures for your business"
+    },
+    {
+      id: 5,
+      name: "Posters",
+      category: "Marketing",
+      price: "From $95",
+      image: "🖼️",
+      description: "High-quality posters in various sizes"
+    },
+    {
+      id: 6,
+      name: "Stickers",
+      category: "Specialty",
+      price: "From $60",
+      image: "✨",
+      description: "Custom stickers with die-cut options"
+    },
+  ];
+
+  const notifications = [
+    { id: 1, type: "success", message: "Order ORD-1023 is now in production", time: "5 min ago" },
+    { id: 2, type: "info", message: "Your invoice INV-2024-1018 is due in 3 days", time: "1 hour ago" },
+    { id: 3, type: "warning", message: "Design approval needed for ORD-1025", time: "2 hours ago" },
+  ];
+
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFile(file);
     }
 
     if (!sections.some((section) => section.id === searchSection)) {
@@ -273,108 +249,509 @@ export default function ClientDashboard({ userName = "Client" }) {
   };
 
   return (
-    <div className="space-y-6">
-      <header className="rounded-xl bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 p-8 text-white shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Welcome back, {firstName}!</h1>
-            <p className="mt-1 text-blue-100">Here is the latest activity from your print workspace.</p>
-          </div>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={handleRequestOrder}
-              className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 font-semibold text-blue-600 transition hover:bg-blue-50"
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              New Order
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveSection("designLibrary")}
-              className="inline-flex items-center gap-2 rounded-lg bg-white/20 px-4 py-2 font-medium text-white transition hover:bg-white/30"
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 0 1-.9-7.9A5 5 0 1 1 15.9 6L16 6a5 5 0 0 1 1 9.9M15 13l-3-3m0 0-3 3m3-3v12" />
-              </svg>
-              Upload Design
-            </button>
-          </div>
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+        {/* Logo/Brand Area */}
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-xl font-bold text-gray-900">Let&apos;s Print</h2>
+          <p className="text-xs text-gray-500 mt-1">Client Portal</p>
         </div>
-      </header>
 
-      <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map((stat) => (
-          <article key={stat.id} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-              {stat.icon}
-            </div>
-            <p className="text-sm font-medium text-gray-500">{stat.title}</p>
-            <p className="mt-2 text-2xl font-semibold text-gray-900">{stat.value}</p>
-            <p className={`mt-2 text-xs font-medium ${indicatorClass(stat.indicator)}`}>{stat.change}</p>
-          </article>
-        ))}
-      </section>
-
-      <section className="rounded-xl border border-gray-200 bg-white shadow-sm">
-        <nav className="flex flex-wrap gap-2 border-b border-gray-200 px-4 py-3" aria-label="Client dashboard sections">
-          {sections.map((section) => (
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          {clientSidebarItems.map((item) => (
             <button
-              key={section.id}
-              type="button"
-              onClick={() => selectSection(section.id)}
-              className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                activeSection === section.id
-                  ? "bg-blue-600 text-white shadow"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              key={item.id}
+              onClick={() => setActiveView(item.id)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                activeView === item.id
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
-              {section.label}
+              {item.icon}
+              <span className="flex-1 text-left">{item.label}</span>
+              {item.badge && (
+                <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
+                  activeView === item.id
+                    ? 'bg-white text-blue-600'
+                    : 'bg-red-500 text-white'
+                }`}>
+                  {item.badge}
+                </span>
+              )}
             </button>
           ))}
         </nav>
 
-        <div className="p-6">
-          {activeSection === "myOrders" && (
-            <MyOrdersSection
-              orders={orders}
-              onViewOrder={(order) => setOrderDetailModal(order)}
-              onTrackOrder={handleTrackOrder}
-            />
-          )}
-
-          {activeSection === "trackShipment" && (
-            <TrackShipmentSection
-              orders={orders}
-              selectedOrder={trackingOrder}
-              onSelectOrder={(order) => setTrackingOrder(order)}
-            />
-          )}
-
-          {activeSection === "designLibrary" && (
-            <DesignLibrarySection designs={designs} onRequestOrder={handleRequestOrder} />
-          )}
-
-          {activeSection === "invoices" && <InvoicesPaymentsSection invoices={invoices} />}
-
-          {activeSection === "browseProducts" && (
-            <BrowseProductsSection products={products} onOrderProduct={(product) => console.log("Order product", product)} />
-          )}
-
-          {activeSection === "support" && (
-            <SupportSection channels={supportChannels} resources={supportResources} faqs={supportFaqs} />
-          )}
-
-          {activeSection === "tickets" && (
-            <TicketsSection tickets={ticketSeed} onCreateTicket={() => console.log("Create ticket")} />
-          )}
-
-          {activeSection === "myAccount" && <MyAccountSection profile={accountProfile} />}
+        {/* User Info at Bottom */}
+        <div className="p-4 border-t border-gray-200">
+          <div className="flex items-center gap-3 px-3 py-2">
+            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+              {userName.charAt(0)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
+              <p className="text-xs text-gray-500">Client</p>
+            </div>
+          </div>
         </div>
-      </section>
+      </header>
 
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-8 space-y-6">
+          {/* Dashboard View */}
+          {activeView === 'dashboard' && (
+            <>
+              {/* Page Header with Actions */}
+              <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-xl shadow-sm p-8 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h1 className="text-3xl font-bold mb-2">Welcome back, {userName.split(' ')[0]}!</h1>
+                    <p className="text-blue-100">
+                      Here&apos;s your order activity and account overview
+                    </p>
+                  </div>
+                  <div className="hidden md:flex gap-3">
+                    <button 
+                      onClick={() => setUploadModalOpen(true)}
+                      className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-4 py-2 rounded-lg transition-all flex items-center gap-2"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      Upload Design
+                    </button>
+                    <button className="bg-white text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      New Order
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                {stats.map((stat) => (
+                  <div
+                    key={stat.name}
+                    className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all cursor-pointer"
+                  >
+                    <div className="p-5">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className={`w-12 h-12 rounded-lg ${colorClasses[stat.color]} flex items-center justify-center border`}>
+                          {stat.icon}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 mb-1">{stat.name}</p>
+                        <p className="text-2xl font-bold text-gray-900 mb-2">{stat.value}</p>
+                        {stat.subtext && (
+                          <p className="text-xs text-gray-500 mb-1">{stat.subtext}</p>
+                        )}
+                        <p
+                          className={`text-xs font-medium ${
+                            stat.changeType === "positive" 
+                              ? "text-green-600" 
+                              : stat.changeType === "warning"
+                              ? "text-orange-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {stat.change}
+                        </p>
+                      </div>
+                    </div>
+                    {stat.changeType === "positive" && (
+                      <div className="h-1 bg-gradient-to-r from-green-400 to-green-600"></div>
+                    )}
+                    {stat.changeType === "warning" && (
+                      <div className="h-1 bg-gradient-to-r from-orange-400 to-orange-600"></div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Dashboard Content */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="p-6 space-y-6">
+            {/* Recent Orders */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-900">Recent Orders</h2>
+                <button 
+                  onClick={() => setActiveView('my-orders')}
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                >
+                  View All
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+              <div className="grid gap-4">
+                {recentOrders.slice(0, 3).map((order) => (
+                  <div key={order.id} className="bg-gray-50 rounded-xl p-5 hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 flex-1">
+                        <div className="text-3xl">📦</div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="font-semibold text-gray-900">{order.title}</p>
+                            <span
+                              className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                order.status === "Delivered"
+                                  ? "bg-green-100 text-green-700"
+                                  : order.status === "Shipped"
+                                  ? "bg-blue-100 text-blue-700"
+                                  : order.status === "Production"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : order.status === "Cancelled"
+                                  ? "bg-red-100 text-red-700"
+                                  : "bg-purple-100 text-purple-700"
+                              }`}
+                            >
+                              {order.status}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-500">{order.id} • {order.quantity}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-gray-900 text-lg">{order.total}</p>
+                        <p className="text-xs text-gray-500">{order.date}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Active Order Status */}
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Active Order Status</h2>
+              <div className="bg-gray-50 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <p className="text-sm text-gray-600">Order ID: <span className="font-semibold text-gray-900">ORD-1023</span></p>
+                    <p className="text-lg font-bold text-gray-900 mt-1">Business Cards</p>
+                  </div>
+                  <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">
+                    Production
+                  </span>
+                </div>
+                
+                <div className="relative">
+                  <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-300"></div>
+                  <div className="space-y-6 relative">
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center relative z-10 flex-shrink-0">
+                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 pt-1">
+                        <p className="font-semibold text-gray-900 text-sm">Order Placed</p>
+                        <p className="text-xs text-gray-500">Dec 10, 2024 - 10:30 AM</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center relative z-10 flex-shrink-0">
+                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 pt-1">
+                        <p className="font-semibold text-gray-900 text-sm">Design Approved</p>
+                        <p className="text-xs text-gray-500">Dec 10, 2024 - 2:15 PM</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center relative z-10 flex-shrink-0 animate-pulse">
+                        <div className="w-3 h-3 bg-white rounded-full"></div>
+                      </div>
+                      <div className="flex-1 pt-1">
+                        <p className="font-semibold text-gray-900 text-sm">In Production</p>
+                        <p className="text-xs text-blue-600 font-medium">Currently in progress...</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center relative z-10 flex-shrink-0">
+                        <div className="w-3 h-3 bg-white rounded-full"></div>
+                      </div>
+                      <div className="flex-1 pt-1">
+                        <p className="font-medium text-gray-400 text-sm">Ready for Pickup</p>
+                        <p className="text-xs text-gray-400">Pending</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Spending Overview Chart */}
+            <div>
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">Spending Overview</h2>
+                <div className="h-64 flex items-end justify-between gap-2">
+                  {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((month, index) => {
+                    const heights = [40, 65, 45, 80, 70, 90];
+                    const amounts = ['$1,200', '$2,100', '$1,500', '$2,800', '$2,400', '$3,200'];
+                    return (
+                      <div key={month} className="flex-1 flex flex-col items-center gap-2 group">
+                        <div className="relative w-full">
+                          <div 
+                            className="w-full bg-blue-500 rounded-t-lg hover:bg-blue-600 transition-colors cursor-pointer" 
+                            style={{ height: `${heights[index] * 2.5}px` }}
+                          >
+                            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                              {amounts[index]}
+                            </div>
+                          </div>
+                        </div>
+                        <span className="text-xs text-gray-500 font-medium">{month}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+              </div>
+            </>
+          )}
+
+        {/* Orders Tab */}
+        {activeView === 'my-orders' && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="p-6">
+            {/* Search and Filters */}
+            <div className="mb-6 flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search orders by ID or product..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <select 
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="all">All Status</option>
+                  <option value="production">Production</option>
+                  <option value="shipped">Shipped</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+                <select 
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="date">Sort by Date</option>
+                  <option value="amount">Sort by Amount</option>
+                </select>
+                <button 
+                  onClick={handleExportOrders}
+                  className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors flex items-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Export
+                </button>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Order</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Product</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Quantity</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Total</th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {sortedOrders.map((order) => (
+                    <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-4">
+                        <span className="text-sm font-medium text-blue-600">{order.id}</span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="text-sm font-medium text-gray-900">{order.title}</span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="text-sm text-gray-600">{order.quantity}</span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                            order.status === "Delivered"
+                              ? "bg-green-100 text-green-700"
+                              : order.status === "Shipped"
+                              ? "bg-blue-100 text-blue-700"
+                              : order.status === "Production"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : order.status === "Cancelled"
+                              ? "bg-red-100 text-red-700"
+                              : "bg-purple-100 text-purple-700"
+                          }`}
+                        >
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="text-sm text-gray-600">{order.date}</span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="text-sm font-semibold text-gray-900">{order.total}</span>
+                      </td>
+                      <td className="px-4 py-4 text-right">
+                        <button 
+                          onClick={() => handleViewOrder(order)}
+                          className="text-sm text-blue-600 hover:text-blue-800 font-medium mr-3"
+                        >
+                          View
+                        </button>
+                        {order.trackingNumber && (
+                          <button className="text-sm text-gray-600 hover:text-gray-800 font-medium">
+                            Track
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {sortedOrders.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-gray-500">No orders found matching your criteria.</p>
+                </div>
+              )}
+            </div>
+          </div>
+          </div>
+        )}
+
+        {/* Invoices Tab */}
+        {activeView === 'invoices' && (
+          <InvoicesPayments onBack={() => setActiveView('dashboard')} />
+        )}
+
+        {/* Products Tab */}
+        {activeView === 'browse-products' && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+          <div className="p-6 space-y-6">
+            <div className="flex gap-4">
+              <input
+                type="text"
+                placeholder="Search products..."
+                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <select className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <option>All Categories</option>
+                <option>Stationery</option>
+                <option>Marketing</option>
+                <option>Large Format</option>
+                <option>Specialty</option>
+              </select>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {products.map((product) => (
+                <div key={product.id} className="bg-white rounded-xl border border-gray-200 hover:shadow-lg transition-all overflow-hidden group">
+                  <div className="h-44 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center text-6xl group-hover:scale-105 transition-transform">
+                    {product.image}
+                  </div>
+                  <div className="p-5">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
+                        {product.category}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600 mb-3">{product.description}</p>
+                    <p className="text-sm text-gray-600 font-medium mb-4">{product.price}</p>
+                    <button className="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                      Order Now
+                    </button>
+                  </div>
+                </div>
+                ))}
+            </div>
+          </div>
+          </div>
+        )}
+
+        {/* New Order View */}
+        {activeView === 'new-order' && (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Create New Order</h2>
+            <p className="text-gray-600">New order form will be displayed here.</p>
+          </div>
+        )}
+
+        {/* Track Shipment View */}
+        {activeView === 'track-shipment' && (
+          <TrackShipment onBack={() => setActiveView('dashboard')} />
+        )}
+
+        {/* Design Library View */}
+        {activeView === 'design-library' && (
+          <DesignLibrary onBack={() => setActiveView('dashboard')} />
+        )}
+
+        {/* Support View */}
+        {activeView === 'support' && (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Support</h2>
+            <p className="text-gray-600">Support center will be displayed here.</p>
+          </div>
+        )}
+
+        {/* Tickets View */}
+        {activeView === 'tickets' && (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Support Tickets</h2>
+            <p className="text-gray-600">Your support tickets will be displayed here.</p>
+          </div>
+        )}
+
+        {/* My Account View */}
+        {activeView === 'my-account' && (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">My Account</h2>
+            <p className="text-gray-600">Account settings will be displayed here.</p>
+          </div>
+        )}
+        </div>
+      </div>
+
+      {/* Order Detail Modal */}
       {orderDetailModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-4">
           <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white shadow-2xl">

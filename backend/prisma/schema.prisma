@@ -82,17 +82,19 @@ model Tenant {
 
 // Updated User model with RBAC and multi-tenant support
 model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  password      String    // Bcrypt hashed password
-  name          String?
-  roleId        String
-  tenantId      String?   // For business_owner and client users
-  isActive      Boolean   @default(true)
-  emailVerified Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  lastLoginAt   DateTime?
+  id                    String    @id @default(uuid())
+  email                 String    @unique
+  password              String?   // Bcrypt hashed password (nullable for pending users)
+  name                  String?
+  roleId                String
+  tenantId              String?   // For business_owner and client users
+  isActive              Boolean   @default(true)
+  emailVerified         Boolean   @default(false)
+  verificationToken     String?   @unique // Token for email verification
+  verificationTokenExp  DateTime? // Token expiration time
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  lastLoginAt           DateTime?
   
   role          Role      @relation(fields: [roleId], references: [id], onDelete: Restrict)
   tenant        Tenant?   @relation(fields: [tenantId], references: [id], onDelete: SetNull)
@@ -103,6 +105,7 @@ model User {
   @@index([roleId])
   @@index([tenantId])
   @@index([email])
+  @@index([verificationToken])
 }
 
 model Product {
