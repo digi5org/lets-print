@@ -220,44 +220,32 @@ export default function ClientDashboard({ userName }) {
     if (file) {
       setSelectedFile(file);
     }
-  };
 
-  const handleUpload = () => {
-    console.log("Uploading file:", selectedFile);
-    setUploadModalOpen(false);
-    setSelectedFile(null);
-  };
-
-  const handleViewOrder = (order) => {
-    setOrderDetailModal(order);
-  };
-
-  const handleExportOrders = () => {
-    console.log("Exporting orders...");
-    // Implementation for CSV/PDF export
-  };
-
-  const filteredOrders = recentOrders.filter(order => {
-    const matchesSearch = order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         order.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = filterStatus === 'all' || order.status.toLowerCase() === filterStatus.toLowerCase();
-    return matchesSearch && matchesFilter;
-  });
-
-  const sortedOrders = [...filteredOrders].sort((a, b) => {
-    if (sortBy === 'date') {
-      return new Date(b.date) - new Date(a.date);
-    } else if (sortBy === 'amount') {
-      return parseFloat(b.total.replace('$', '')) - parseFloat(a.total.replace('$', ''));
+    if (!sections.some((section) => section.id === searchSection)) {
+      router.replace("/dashboard/client?section=myOrders", { scroll: false });
+      return;
     }
-    return 0;
-  });
 
-  const colorClasses = {
-    blue: "bg-blue-50 text-blue-600 border-blue-100",
-    green: "bg-green-50 text-green-600 border-green-100",
-    purple: "bg-purple-50 text-purple-600 border-purple-100",
-    orange: "bg-orange-50 text-orange-600 border-orange-100",
+    setActiveSection(searchSection);
+  }, [searchSection, router]);
+
+  const indicatorClass = (indicator) => {
+    if (indicator === "positive") return "text-green-600";
+    if (indicator === "warning") return "text-orange-600";
+    return "text-gray-600";
+  };
+
+  const selectSection = (sectionId) => {
+    router.replace(`/dashboard/client?section=${sectionId}`, { scroll: false });
+  };
+
+  const handleTrackOrder = (order) => {
+    setTrackingOrder(order);
+    selectSection("trackShipment");
+  };
+
+  const handleRequestOrder = () => {
+    selectSection("browseProducts");
   };
 
   return (
@@ -309,7 +297,7 @@ export default function ClientDashboard({ userName }) {
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto">
@@ -765,186 +753,87 @@ export default function ClientDashboard({ userName }) {
 
       {/* Order Detail Modal */}
       {orderDetailModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
-              <h3 className="text-xl font-bold text-gray-900">Order Details</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-4">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white shadow-2xl">
+            <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900">Order details</h2>
               <button
+                type="button"
                 onClick={() => setOrderDetailModal(null)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 transition hover:text-gray-600"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18 18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+
+            <div className="space-y-6 p-6">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <p className="text-sm text-gray-600">Order ID</p>
-                  <p className="font-semibold text-gray-900">{orderDetailModal.id}</p>
+                  <p className="text-sm text-gray-500">Order ID</p>
+                  <p className="text-sm font-semibold text-gray-900">{orderDetailModal.id}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Status</p>
-                  <span
-                    className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                      orderDetailModal.status === "Delivered"
-                        ? "bg-green-100 text-green-700"
-                        : orderDetailModal.status === "Shipped"
-                        ? "bg-blue-100 text-blue-700"
-                        : orderDetailModal.status === "Production"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : orderDetailModal.status === "Cancelled"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-purple-100 text-purple-700"
-                    }`}
-                  >
-                    {orderDetailModal.status}
-                  </span>
+                  <p className="text-sm text-gray-500">Status</p>
+                  <p className="text-sm font-semibold text-gray-900">{orderDetailModal.status}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Product</p>
-                  <p className="font-semibold text-gray-900">{orderDetailModal.title}</p>
+                  <p className="text-sm text-gray-500">Product</p>
+                  <p className="text-sm font-semibold text-gray-900">{orderDetailModal.title}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Quantity</p>
-                  <p className="font-semibold text-gray-900">{orderDetailModal.quantity}</p>
+                  <p className="text-sm text-gray-500">Quantity</p>
+                  <p className="text-sm font-semibold text-gray-900">{orderDetailModal.quantity}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Order Date</p>
-                  <p className="font-semibold text-gray-900">{orderDetailModal.date}</p>
+                  <p className="text-sm text-gray-500">Placed</p>
+                  <p className="text-sm font-semibold text-gray-900">{orderDetailModal.date}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Delivery Date</p>
-                  <p className="font-semibold text-gray-900">{orderDetailModal.deliveryDate}</p>
+                  <p className="text-sm text-gray-500">Delivery</p>
+                  <p className="text-sm font-semibold text-gray-900">{orderDetailModal.deliveryDate}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Customer</p>
-                  <p className="font-semibold text-gray-900">{orderDetailModal.customer}</p>
+                  <p className="text-sm text-gray-500">Customer</p>
+                  <p className="text-sm font-semibold text-gray-900">{orderDetailModal.customer}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Total Amount</p>
-                  <p className="font-bold text-gray-900 text-lg">{orderDetailModal.total}</p>
+                  <p className="text-sm text-gray-500">Total</p>
+                  <p className="text-base font-semibold text-gray-900">{orderDetailModal.total}</p>
                 </div>
               </div>
 
               {orderDetailModal.trackingNumber && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-blue-600 font-medium mb-1">Tracking Number</p>
-                  <p className="font-mono text-gray-900">{orderDetailModal.trackingNumber}</p>
+                <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                  Tracking number: <span className="font-semibold">{orderDetailModal.trackingNumber}</span>
                 </div>
               )}
 
               {orderDetailModal.notes && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <p className="text-sm text-gray-600 font-medium mb-1">Order Notes</p>
-                  <p className="text-gray-900">{orderDetailModal.notes}</p>
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
+                  <p className="font-semibold text-gray-900">Notes</p>
+                  <p className="mt-2 text-gray-600">{orderDetailModal.notes}</p>
                 </div>
               )}
 
-              <div className="flex gap-3">
-                <button className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                  Download Invoice
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
+                >
+                  Download invoice
                 </button>
                 {orderDetailModal.trackingNumber && (
-                  <button className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg hover:bg-gray-200 transition-colors font-medium">
-                    Track Shipment
+                  <button
+                    type="button"
+                    onClick={() => handleTrackOrder(orderDetailModal)}
+                    className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:border-blue-500 hover:text-blue-600"
+                  >
+                    Track shipment
                   </button>
                 )}
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Upload Modal */}
-      {uploadModalOpen && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Upload Design</h3>
-              <button
-                onClick={() => {
-                  setUploadModalOpen(false);
-                  setSelectedFile(null);
-                }}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Order
-              </label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option>ORD-1023 - Business Cards</option>
-                <option>ORD-1018 - Flyers</option>
-              </select>
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Design File
-              </label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-blue-400 transition-colors">
-                <div className="space-y-1 text-center">
-                  <svg
-                    className="mx-auto h-12 w-12 text-gray-400"
-                    stroke="currentColor"
-                    fill="none"
-                    viewBox="0 0 48 48"
-                  >
-                    <path
-                      d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                      strokeWidth={2}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  <div className="flex text-sm text-gray-600">
-                    <label className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500">
-                      <span>Upload a file</span>
-                      <input
-                        type="file"
-                        className="sr-only"
-                        accept=".pdf,.ai,.psd,.jpg,.png"
-                        onChange={handleFileSelect}
-                      />
-                    </label>
-                    <p className="pl-1">or drag and drop</p>
-                  </div>
-                  <p className="text-xs text-gray-500">PDF, AI, PSD, JPG, PNG up to 50MB</p>
-                  {selectedFile && (
-                    <p className="text-sm text-green-600 mt-2">
-                      Selected: {selectedFile.name}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => {
-                  setUploadModalOpen(false);
-                  setSelectedFile(null);
-                }}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleUpload}
-                disabled={!selectedFile}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
-              >
-                Upload
-              </button>
             </div>
           </div>
         </div>
