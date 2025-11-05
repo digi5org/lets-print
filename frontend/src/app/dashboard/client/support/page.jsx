@@ -14,6 +14,7 @@ const supportResources = [
   { id: "guide-3", title: "How to manage design approvals", updatedAt: "Nov 2024" },
 ];
 
+
 const supportFaqs = [
   { id: "faq-1", question: "How long does production take?", answer: "Standard production time is 3 to 5 business days depending on the product." },
   { id: "faq-2", question: "Can I reorder a previous job?", answer: "Yes. Use the design library or order history to reorder with saved specifications." },

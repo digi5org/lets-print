@@ -158,10 +158,16 @@ export const navigationItems = [
     roles: ["client"],
   },
   {
+    name: "Dashboard Overview",
+    href: "/dashboard/production",
+    icon: <HomeIcon />,
+    roles: ["production_owner"],
+  },
+  {
     name: "Dashboard",
     href: "/dashboard",
     icon: <HomeIcon />,
-    roles: ["business_owner", "production_owner", "superadmin"],
+    roles: ["business_owner", "superadmin"],
   },
   {
     name: "New Order",
@@ -220,10 +226,70 @@ export const navigationItems = [
     roles: ["client"],
   },
   {
+    name: "Orders Management",
+    href: "/dashboard/orders",
+    icon: <OrdersIcon />,
+    roles: ["production_owner"],
+  },
+  {
     name: "Orders",
     href: "/dashboard/orders",
     icon: <OrdersIcon />,
-    roles: ["business_owner", "production_owner"],
+    roles: ["business_owner"],
+  },
+  {
+    name: "Billing",
+    href: "/dashboard/billing",
+    icon: <InvoicesIcon />,
+    roles: ["production_owner"],
+  },
+  {
+    name: "Products & Services",
+    href: "/dashboard/products",
+    icon: <ProductionIcon />,
+    roles: ["production_owner"],
+  },
+  {
+    name: "Materials & Inventory",
+    href: "/dashboard/inventory",
+    icon: <BusinessIcon />,
+    roles: ["production_owner"],
+  },
+  {
+    name: "Delivery Management",
+    href: "/dashboard/delivery",
+    icon: <TrackShipmentIcon />,
+    roles: ["production_owner"],
+  },
+  {
+    name: "Messages",
+    href: "/dashboard/messages",
+    icon: <SupportIcon />,
+    roles: ["production_owner"],
+  },
+  {
+    name: "Tickets",
+    href: "/dashboard/tickets",
+    icon: <TicketsIcon />,
+    roles: ["production_owner"],
+  },
+  {
+    name: "Reports & Analytics",
+    href: "/dashboard/analytics",
+    icon: <AnalyticsIcon />,
+    roles: ["production_owner"],
+  },
+  {
+    name: "My Profile",
+    href: "/dashboard/profile",
+    icon: <MyAccountIcon />,
+    roles: ["production_owner"],
+  },
+  {
+    name: "Team Management",
+    href: "/dashboard/team",
+    icon: <UsersIcon />,
+    roles: ["production_owner"],
   },
   {
     name: "Clients",
@@ -235,13 +301,7 @@ export const navigationItems = [
     name: "Businesses",
     href: "/dashboard/businesses",
     icon: <BusinessIcon />,
-    roles: ["production_owner", "superadmin"],
-  },
-  {
-    name: "Production",
-    href: "/dashboard/production",
-    icon: <ProductionIcon />,
-    roles: ["production_owner"],
+    roles: ["superadmin"],
   },
   {
     name: "All Users",
@@ -253,16 +313,17 @@ export const navigationItems = [
     name: "Analytics",
     href: "/dashboard/analytics",
     icon: <AnalyticsIcon />,
-    roles: ["business_owner", "production_owner", "superadmin"],
+    roles: ["business_owner", "superadmin"],
   },
   {
     name: "Settings",
     href: "/dashboard/settings",
     icon: <SettingsIcon />,
-    roles: ["business_owner", "production_owner", "superadmin"],
+    roles: ["business_owner", "superadmin"],
   },
 ];
 
 export function getNavigationForRole(role) {
   return navigationItems.filter((item) => item.roles.includes(role));
 }
+
