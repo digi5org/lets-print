@@ -671,7 +671,7 @@ export default function SuperAdminDashboard({ userName }) {
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="John Doe"
                 />
               </div>
@@ -685,7 +685,7 @@ export default function SuperAdminDashboard({ userName }) {
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="john@example.com"
                 />
               </div>
@@ -700,7 +700,7 @@ export default function SuperAdminDashboard({ userName }) {
                   minLength={8}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Min 8 characters"
                 />
                 <p className="mt-1 text-xs text-gray-500">
@@ -716,7 +716,7 @@ export default function SuperAdminDashboard({ userName }) {
                   required
                   value={formData.roleId}
                   onChange={(e) => setFormData({ ...formData, roleId: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select a role</option>
                   {roles.filter(r => r.name !== 'super_admin').map(role => (
@@ -734,7 +734,7 @@ export default function SuperAdminDashboard({ userName }) {
                 <select 
                   value={formData.tenantId}
                   onChange={(e) => setFormData({ ...formData, tenantId: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">None</option>
                   {tenants.map(tenant => (
@@ -787,21 +787,19 @@ export default function SuperAdminDashboard({ userName }) {
               </button>
             </div>
             
-            <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">
-                Current Plan: <span className="font-semibold">{selectedUser.subscription}</span>
-              </p>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                New Plan
-              </label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option>Basic - $29/month</option>
-                <option>Professional - $99/month</option>
-                <option>Enterprise - $299/month</option>
-              </select>
-            </div>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-2">
+                  Current Plan: <span className="font-semibold">{selectedUser.subscription}</span>
+                </p>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  New Plan
+                </label>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option>Basic - $29/month</option>
+                  <option>Professional - $99/month</option>
+                  <option>Enterprise - $299/month</option>
+                </select>
+              </div>            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
               <p className="text-sm text-blue-800">
                 The subscription will be updated immediately and the user will be charged on their next billing cycle.
               </p>
@@ -857,7 +855,7 @@ export default function SuperAdminDashboard({ userName }) {
                   required
                   value={tenantFormData.name}
                   onChange={(e) => setTenantFormData({ ...tenantFormData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="PrintHub Co"
                 />
               </div>
@@ -871,7 +869,7 @@ export default function SuperAdminDashboard({ userName }) {
                   required
                   value={tenantFormData.slug}
                   onChange={(e) => setTenantFormData({ ...tenantFormData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="printhub-co"
                 />
                 <p className="mt-1 text-xs text-gray-500">
@@ -887,7 +885,7 @@ export default function SuperAdminDashboard({ userName }) {
                   type="text"
                   value={tenantFormData.domain}
                   onChange={(e) => setTenantFormData({ ...tenantFormData, domain: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="printhub.com"
                 />
               </div>

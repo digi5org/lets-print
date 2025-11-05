@@ -311,7 +311,7 @@ export default function ProductionOwnerDashboard({ userName }) {
                     <select
                       value={job.status}
                       onChange={(e) => handleStatusUpdate(job.id, e.target.value)}
-                      className={`text-xs font-semibold rounded-full px-2 py-1 border-0 ${getStatusColor(job.status)}`}
+                      className={`text-xs font-semibold rounded-full px-2 py-1 border-0 text-gray-900 ${getStatusColor(job.status)}`}
                     >
                       <option value="Pending">Pending</option>
                       <option value="In Progress">In Progress</option>
@@ -473,7 +473,7 @@ export default function ProductionOwnerDashboard({ userName }) {
                 </label>
                 <input
                   type="text"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   placeholder="Message subject..."
                 />
               </div>
@@ -483,7 +483,7 @@ export default function ProductionOwnerDashboard({ userName }) {
                   Message
                 </label>
                 <textarea
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   rows="5"
                   placeholder="Type your message here..."
                 />
@@ -493,7 +493,7 @@ export default function ProductionOwnerDashboard({ userName }) {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Related Job (Optional)
                 </label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500">
                   <option value="">Select a job...</option>
                   {jobQueue
                     .filter(job => job.business === selectedBusiness?.name)
