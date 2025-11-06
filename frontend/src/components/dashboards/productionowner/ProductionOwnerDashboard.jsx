@@ -3,529 +3,448 @@
 import { useState } from "react";
 
 export default function ProductionOwnerDashboard({ userName }) {
-  const [showMessageModal, setShowMessageModal] = useState(false);
-  const [selectedBusiness, setSelectedBusiness] = useState(null);
-  const [selectedJob, setSelectedJob] = useState(null);
+  const [orderDetailModal, setOrderDetailModal] = useState(null);
 
   const stats = [
-    { name: "Jobs in Queue", value: "23", change: "+5", changeType: "positive" },
-    { name: "In Progress", value: "12", change: "+3", changeType: "positive" },
-    { name: "Completed Today", value: "8", change: "+2", changeType: "positive" },
-    { name: "Total Revenue", value: "$8,450", change: "+18%", changeType: "positive" },
+    { 
+      name: "Jobs in Queue", 
+      value: "23", 
+      change: "+5 today", 
+      changeType: "positive",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+      ),
+      color: "blue"
+    },
+    { 
+      name: "In Progress", 
+      value: "12", 
+      change: "Currently active", 
+      changeType: "positive",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      color: "purple"
+    },
+    { 
+      name: "Completed Today", 
+      value: "8", 
+      change: "+2 from yesterday", 
+      changeType: "positive",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      color: "green"
+    },
+    { 
+      name: "Monthly Revenue", 
+      value: "$18,450", 
+      change: "+18% this month", 
+      changeType: "positive",
+      subtext: "November 2025",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      color: "orange"
+    },
   ];
 
-  const jobQueue = [
+  const recentJobs = [
     { 
       id: "JOB-301", 
-      business: "PrintHub Co",
-      orderId: "ORD-101",
-      product: "Business Cards",
-      quantity: "1000",
+      title: "Business Cards - PrintHub Co", 
+      status: "In Progress", 
+      date: "Nov 2, 2025",
+      quantity: "1000 cards",
+      total: "$450.00",
+      customer: "ABC Corp",
+      dueDate: "Nov 5, 2025",
       priority: "High",
-      status: "Pending", 
-      submittedDate: "2025-11-02",
-      dueDate: "2025-11-05",
-      client: "ABC Corp"
+      notes: "Premium finish with gold foil"
     },
     { 
       id: "JOB-302", 
-      business: "QuickPrint Inc",
-      orderId: "ORD-205",
-      product: "Brochures",
-      quantity: "500",
-      priority: "Medium",
-      status: "In Progress", 
-      submittedDate: "2025-11-01",
-      dueDate: "2025-11-04",
-      client: "XYZ Inc"
+      title: "Brochures - QuickPrint Inc", 
+      status: "Quality Check", 
+      date: "Nov 1, 2025",
+      quantity: "500 units",
+      total: "$850.00",
+      customer: "XYZ Inc",
+      dueDate: "Nov 4, 2025",
+      priority: "Medium"
     },
     { 
       id: "JOB-303", 
-      business: "PrintHub Co",
-      orderId: "ORD-103",
-      product: "Banners",
-      quantity: "10",
-      priority: "High",
-      status: "Quality Check", 
-      submittedDate: "2025-10-31",
-      dueDate: "2025-11-03",
-      client: "Tech Start"
-    },
-    { 
-      id: "JOB-304", 
-      business: "FastPrint Ltd",
-      orderId: "ORD-156",
-      product: "Posters",
-      quantity: "100",
-      priority: "Low",
+      title: "Banners - PrintHub Co", 
       status: "Completed", 
-      submittedDate: "2025-10-30",
-      dueDate: "2025-11-02",
-      client: "Marketing Pro"
-    },
-    { 
-      id: "JOB-305", 
-      business: "QuickPrint Inc",
-      orderId: "ORD-209",
-      product: "Flyers",
-      quantity: "2000",
-      priority: "Medium",
-      status: "Pending", 
-      submittedDate: "2025-11-02",
-      dueDate: "2025-11-06",
-      client: "Sales Team Inc"
+      date: "Oct 31, 2025",
+      quantity: "10 banners",
+      total: "$1,200.00",
+      customer: "Tech Start",
+      dueDate: "Nov 3, 2025",
+      priority: "High"
     },
   ];
 
-  const businesses = [
-    { 
-      id: 1, 
-      name: "PrintHub Co", 
-      contact: "John Smith",
-      email: "john@printhub.com", 
-      phone: "(555) 111-2222",
-      activeJobs: 8,
-      totalJobs: 45,
-      status: "Active"
-    },
-    { 
-      id: 2, 
-      name: "QuickPrint Inc", 
-      contact: "Sarah Johnson",
-      email: "sarah@quickprint.com", 
-      phone: "(555) 333-4444",
-      activeJobs: 6,
-      totalJobs: 32,
-      status: "Active"
-    },
-    { 
-      id: 3, 
-      name: "FastPrint Ltd", 
-      contact: "Mike Wilson",
-      email: "mike@fastprint.com", 
-      phone: "(555) 555-6666",
-      activeJobs: 4,
-      totalJobs: 28,
-      status: "Active"
-    },
-    { 
-      id: 4, 
-      name: "Design Print Pro", 
-      contact: "Emily Davis",
-      email: "emily@designprintpro.com", 
-      phone: "(555) 777-8888",
-      activeJobs: 5,
-      totalJobs: 19,
-      status: "Active"
-    },
-  ];
-
-  const handleStatusUpdate = (jobId, newStatus) => {
-    // TODO: Implement actual status update logic
-    console.log(`Updating job ${jobId} to status: ${newStatus}`);
+  const handleViewJob = (job) => {
+    setOrderDetailModal(job);
   };
 
-  const handleSendMessage = () => {
-    // TODO: Implement actual messaging logic
-    console.log(`Sending message to ${selectedBusiness?.name}`);
-    setShowMessageModal(false);
-    setSelectedBusiness(null);
-  };
-
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case "High":
-        return "bg-red-100 text-red-800";
-      case "Medium":
-        return "bg-yellow-100 text-yellow-800";
-      case "Low":
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "Completed":
-        return "bg-green-100 text-green-800";
-      case "In Progress":
-        return "bg-blue-100 text-blue-800";
-      case "Quality Check":
-        return "bg-purple-100 text-purple-800";
-      case "Pending":
-        return "bg-yellow-100 text-yellow-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+  const colorClasses = {
+    blue: "bg-blue-50 text-blue-600 border-blue-100",
+    green: "bg-green-50 text-green-600 border-green-100",
+    purple: "bg-purple-50 text-purple-600 border-purple-100",
+    orange: "bg-orange-50 text-orange-600 border-orange-100",
   };
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Production Dashboard</h1>
-        <p className="mt-2 text-gray-600">
-          Welcome back, {userName}! Manage your production queue and communicate with business owners.
-        </p>
+    <>
+      {/* Page Header with Actions */}
+      <div className="bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800 rounded-xl shadow-sm p-8 text-white mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Welcome back, {userName?.split(' ')[0] || 'Production Owner'}!</h1>
+            <p className="text-purple-100">
+              Here&apos;s your production overview and job queue
+            </p>
+          </div>
+          <div className="hidden md:flex gap-3">
+            <button 
+              className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-4 py-2 rounded-lg transition-all flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              View Analytics
+            </button>
+            <button className="bg-white text-purple-600 hover:bg-purple-50 px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              New Job
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         {stats.map((stat) => (
           <div
             key={stat.name}
-            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+            className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all cursor-pointer"
           >
-            <div className="flex items-center justify-between">
+            <div className="p-5">
+              <div className="flex items-center justify-between mb-3">
+                <div className={`w-12 h-12 rounded-lg ${colorClasses[stat.color]} flex items-center justify-center border`}>
+                  {stat.icon}
+                </div>
+              </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">{stat.name}</p>
-                <p className="mt-2 text-3xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-sm font-medium text-gray-600 mb-1">{stat.name}</p>
+                <p className="text-2xl font-bold text-gray-900 mb-2">{stat.value}</p>
+                {stat.subtext && (
+                  <p className="text-xs text-gray-500 mb-1">{stat.subtext}</p>
+                )}
+                <p
+                  className={`text-xs font-medium ${
+                    stat.changeType === "positive" 
+                      ? "text-green-600" 
+                      : stat.changeType === "warning"
+                      ? "text-orange-600"
+                      : "text-red-600"
+                  }`}
+                >
+                  {stat.change}
+                </p>
               </div>
             </div>
-            <div className="mt-4">
-              <span
-                className={`text-sm font-medium ${
-                  stat.changeType === "positive" ? "text-green-600" : "text-red-600"
-                }`}
-              >
-                {stat.change}
-              </span>
-              <span className="text-sm text-gray-600"> from yesterday</span>
-            </div>
+            {stat.changeType === "positive" && (
+              <div className="h-1 bg-gradient-to-r from-green-400 to-green-600"></div>
+            )}
+            {stat.changeType === "warning" && (
+              <div className="h-1 bg-gradient-to-r from-orange-400 to-orange-600"></div>
+            )}
           </div>
         ))}
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <button 
-            onClick={() => {
-              const pendingJob = jobQueue.find(job => job.status === "Pending");
-              if (pendingJob) setSelectedJob(pendingJob);
-            }}
-            className="flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Start Next Job
-          </button>
-          <button className="flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            </svg>
-            Complete Job
-          </button>
-          <button 
-            onClick={() => setShowMessageModal(true)}
-            className="flex items-center justify-center px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
-            Message Business
-          </button>
-          <button className="flex items-center justify-center px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Production Report
-          </button>
-        </div>
-      </div>
+      {/* Dashboard Content */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="p-6 space-y-6">
+          {/* Recent Orders */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">Recent Jobs</h2>
+              <a 
+                href="/dashboard/production"
+                className="text-sm text-purple-600 hover:text-purple-800 font-medium flex items-center gap-1"
+              >
+                View All
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </a>
+            </div>
+            <div className="grid gap-4">
+              {recentJobs.map((job) => (
+                <div key={job.id} className="bg-gray-50 rounded-xl p-5 hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => handleViewJob(job)}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className="text-3xl">🏭</div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-semibold text-gray-900">{job.title}</p>
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              job.status === "Completed"
+                                ? "bg-green-100 text-green-700"
+                                : job.status === "Quality Check"
+                                ? "bg-blue-100 text-blue-700"
+                                : job.status === "In Progress"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : job.status === "Pending"
+                                ? "bg-gray-100 text-gray-700"
+                                : "bg-purple-100 text-purple-700"
+                            }`}
+                          >
+                            {job.status}
+                          </span>
+                          {job.priority && (
+                            <span
+                              className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                job.priority === "High"
+                                  ? "bg-red-100 text-red-700"
+                                  : job.priority === "Medium"
+                                  ? "bg-orange-100 text-orange-700"
+                                  : "bg-green-100 text-green-700"
+                              }`}
+                            >
+                              {job.priority}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-500">{job.id} • {job.quantity} • Due: {job.dueDate}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-gray-900 text-lg">{job.total}</p>
+                      <p className="text-xs text-gray-500">{job.date}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
-      {/* Job Queue */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-900">Production Queue</h2>
-          <div className="flex space-x-2">
-            <button className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
-              Filter by Priority
-            </button>
-            <button className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
-              Filter by Status
-            </button>
+          {/* Active Job Status */}
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Active Job Status</h2>
+            <div className="bg-gray-50 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <p className="text-sm text-gray-600">Job ID: <span className="font-semibold text-gray-900">JOB-301</span></p>
+                  <p className="text-lg font-bold text-gray-900 mt-1">Business Cards - PrintHub Co</p>
+                  <p className="text-sm text-gray-500 mt-1">Customer: ABC Corp</p>
+                </div>
+                <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">
+                  In Progress
+                </span>
+              </div>
+              
+              <div className="relative">
+                <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-300"></div>
+                <div className="space-y-6 relative">
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center relative z-10 flex-shrink-0">
+                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 pt-1">
+                      <p className="font-semibold text-gray-900 text-sm">Job Received</p>
+                      <p className="text-xs text-gray-500">Nov 2, 2025 - 9:30 AM</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center relative z-10 flex-shrink-0">
+                      <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 pt-1">
+                      <p className="font-semibold text-gray-900 text-sm">Materials Prepared</p>
+                      <p className="text-xs text-gray-500">Nov 2, 2025 - 11:45 AM</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center relative z-10 flex-shrink-0 animate-pulse">
+                      <div className="w-3 h-3 bg-white rounded-full"></div>
+                    </div>
+                    <div className="flex-1 pt-1">
+                      <p className="font-semibold text-gray-900 text-sm">Production</p>
+                      <p className="text-xs text-purple-600 font-medium">Currently printing...</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center relative z-10 flex-shrink-0">
+                      <div className="w-3 h-3 bg-white rounded-full"></div>
+                    </div>
+                    <div className="flex-1 pt-1">
+                      <p className="font-medium text-gray-400 text-sm">Quality Check</p>
+                      <p className="text-xs text-gray-400">Pending</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center relative z-10 flex-shrink-0">
+                      <div className="w-3 h-3 bg-white rounded-full"></div>
+                    </div>
+                    <div className="flex-1 pt-1">
+                      <p className="font-medium text-gray-400 text-sm">Ready for Delivery</p>
+                      <p className="text-xs text-gray-400">Pending</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Production Overview Chart */}
+          <div>
+            <div className="bg-white rounded-xl border border-gray-200 p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Production Revenue</h2>
+              <div className="h-64 flex items-end justify-between gap-2">
+                {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map((month, index) => {
+                  const heights = [35, 55, 48, 75, 62, 85];
+                  const amounts = ['$2,800', '$4,200', '$3,900', '$6,500', '$5,400', '$7,800'];
+                  return (
+                    <div key={month} className="flex-1 flex flex-col items-center gap-2 group">
+                      <div className="relative w-full">
+                        <div 
+                          className="w-full bg-purple-500 rounded-t-lg hover:bg-purple-600 transition-colors cursor-pointer" 
+                          style={{ height: `${heights[index] * 2.5}px` }}
+                        >
+                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                            {amounts[index]}
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-xs text-gray-500 font-medium">{month}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Job ID
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Business
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Product
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Quantity
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Priority
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Due Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {jobQueue.map((job) => (
-                <tr key={job.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{job.id}</p>
-                      <p className="text-xs text-gray-500">{job.orderId}</p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{job.business}</p>
-                      <p className="text-xs text-gray-500">Client: {job.client}</p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {job.product}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {job.quantity}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(job.priority)}`}>
-                      {job.priority}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <select
-                      value={job.status}
-                      onChange={(e) => handleStatusUpdate(job.id, e.target.value)}
-                      className={`text-xs font-semibold rounded-full px-2 py-1 border-0 text-gray-900 ${getStatusColor(job.status)}`}
-                    >
-                      <option value="Pending">Pending</option>
-                      <option value="In Progress">In Progress</option>
-                      <option value="Quality Check">Quality Check</option>
-                      <option value="Completed">Completed</option>
-                    </select>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div>
-                      <p className="text-sm text-gray-700">{job.dueDate}</p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(job.dueDate) < new Date() ? (
-                          <span className="text-red-600">Overdue</span>
-                        ) : (
-                          <span className="text-green-600">On Track</span>
-                        )}
-                      </p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                    <button className="text-blue-600 hover:text-blue-800 font-medium">
-                      View
-                    </button>
-                    <button 
-                      onClick={() => {
-                        const business = businesses.find(b => b.name === job.business);
-                        setSelectedBusiness(business);
-                        setShowMessageModal(true);
-                      }}
-                      className="text-purple-600 hover:text-purple-800 font-medium"
-                    >
-                      Message
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </div>
 
-      {/* Business Partners */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-900">Business Partners</h2>
-          <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-            View All →
-          </button>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Business Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Contact Person
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Email
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Phone
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Active Jobs
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total Jobs
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {businesses.map((business) => (
-                <tr key={business.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-8 w-8 bg-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                        {business.name.charAt(0)}
-                      </div>
-                      <div className="ml-3">
-                        <p className="text-sm font-medium text-gray-900">{business.name}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {business.contact}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {business.email}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {business.phone}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
-                    {business.activeJobs}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {business.totalJobs}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                      {business.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                    <button className="text-blue-600 hover:text-blue-800 font-medium">
-                      View Jobs
-                    </button>
-                    <button 
-                      onClick={() => {
-                        setSelectedBusiness(business);
-                        setShowMessageModal(true);
-                      }}
-                      className="text-purple-600 hover:text-purple-800 font-medium"
-                    >
-                      Contact
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Message Modal */}
-      {showMessageModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Message {selectedBusiness?.name || "Business"}
-              </h3>
+      {/* Job Detail Modal */}
+      {orderDetailModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 p-4">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white shadow-2xl">
+            <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white p-6">
+              <h2 className="text-lg font-semibold text-gray-900">Job Details</h2>
               <button
-                onClick={() => {
-                  setShowMessageModal(false);
-                  setSelectedBusiness(null);
-                }}
-                className="text-gray-400 hover:text-gray-600"
+                type="button"
+                onClick={() => setOrderDetailModal(null)}
+                className="text-gray-400 transition hover:text-gray-600"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18 18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Subject
-                </label>
-                <input
-                  type="text"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Message subject..."
-                />
+
+            <div className="space-y-6 p-6">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="text-sm text-gray-500">Job ID</p>
+                  <p className="text-sm font-semibold text-gray-900">{orderDetailModal.id}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Status</p>
+                  <p className="text-sm font-semibold text-gray-900">{orderDetailModal.status}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Product</p>
+                  <p className="text-sm font-semibold text-gray-900">{orderDetailModal.title}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Quantity</p>
+                  <p className="text-sm font-semibold text-gray-900">{orderDetailModal.quantity}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Received</p>
+                  <p className="text-sm font-semibold text-gray-900">{orderDetailModal.date}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Due Date</p>
+                  <p className="text-sm font-semibold text-gray-900">{orderDetailModal.dueDate}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Customer</p>
+                  <p className="text-sm font-semibold text-gray-900">{orderDetailModal.customer}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Total</p>
+                  <p className="text-base font-semibold text-gray-900">{orderDetailModal.total}</p>
+                </div>
+                {orderDetailModal.priority && (
+                  <div>
+                    <p className="text-sm text-gray-500">Priority</p>
+                    <span
+                      className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
+                        orderDetailModal.priority === "High"
+                          ? "bg-red-100 text-red-700"
+                          : orderDetailModal.priority === "Medium"
+                          ? "bg-orange-100 text-orange-700"
+                          : "bg-green-100 text-green-700"
+                      }`}
+                    >
+                      {orderDetailModal.priority}
+                    </span>
+                  </div>
+                )}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Message
-                </label>
-                <textarea
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  rows="5"
-                  placeholder="Type your message here..."
-                />
-              </div>
+              {orderDetailModal.notes && (
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
+                  <p className="font-semibold text-gray-900">Notes</p>
+                  <p className="mt-2 text-gray-600">{orderDetailModal.notes}</p>
+                </div>
+              )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Related Job (Optional)
-                </label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                  <option value="">Select a job...</option>
-                  {jobQueue
-                    .filter(job => job.business === selectedBusiness?.name)
-                    .map(job => (
-                      <option key={job.id} value={job.id}>
-                        {job.id} - {job.product}
-                      </option>
-                    ))}
-                </select>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  className="flex-1 rounded-lg bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-purple-700"
+                >
+                  Update Status
+                </button>
+                <button
+                  type="button"
+                  className="flex-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:border-purple-500 hover:text-purple-600"
+                >
+                  View Full Details
+                </button>
               </div>
-            </div>
-
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                onClick={() => {
-                  setShowMessageModal(false);
-                  setSelectedBusiness(null);
-                }}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSendMessage}
-                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
-              >
-                Send Message
-              </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
