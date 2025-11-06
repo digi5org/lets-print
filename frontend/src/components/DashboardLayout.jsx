@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { getNavigationForRole } from "@/config/navigation";
+import ImpersonationBanner from "./ImpersonationBanner";
 
 export default function DashboardLayout({ 
   children, 
@@ -182,6 +183,9 @@ export default function DashboardLayout({
             </div>
           </div>
         </header>
+
+        {/* Impersonation Banner */}
+        <ImpersonationBanner />
 
         {/* Page content */}
         <main className="p-6 lg:p-8">

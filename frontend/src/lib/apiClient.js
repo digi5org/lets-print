@@ -25,10 +25,28 @@ export async function fetchAPI(endpoint, options = {}, token = null) {
     headers,
   });
 
-  const data = await response.json();
+  // Check content type before parsing
+  const contentType = response.headers.get('content-type');
+  let data;
+  
+  try {
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      // Handle non-JSON responses (rate limits, server errors, etc.)
+      const text = await response.text();
+      data = { message: text || 'Non-JSON response from server' };
+    }
+  } catch (parseError) {
+    // If JSON parsing fails, treat it as a text response
+    console.error('Failed to parse response:', parseError);
+    data = { message: 'Invalid response from server' };
+  }
 
   if (!response.ok) {
-    throw new Error(data.message || 'API request failed');
+    const error = new Error(data.message || `HTTP ${response.status}: ${response.statusText}`);
+    error.response = { data, status: response.status };
+    throw error;
   }
 
   return data;

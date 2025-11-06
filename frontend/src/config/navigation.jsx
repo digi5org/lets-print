@@ -202,16 +202,22 @@ export const navigationItems = [
     roles: ["client"],
   },
   {
-    name: "Dashboard",
-    href: "/dashboard",
-    icon: <HomeIcon />,
-    roles: ["business_owner", "superadmin"],
-  },
-  {
     name: "Dashboard Overview",
     href: "/dashboard/production",
-    icon: <DashboardIcon />,
+    icon: <HomeIcon />,
     roles: ["production_owner"],
+  },
+  {
+    name: "Business Dashboard",
+    href: "/dashboard/business",
+    icon: <HomeIcon />,
+    roles: ["business_owner"],
+  },
+  {
+    name: "Admin Dashboard",
+    href: "/dashboard/admin",
+    icon: <HomeIcon />,
+    roles: ["superadmin"],
   },
   {
     name: "New Order",
@@ -343,7 +349,7 @@ export const navigationItems = [
   },
   {
     name: "Businesses",
-    href: "/dashboard/businesses",
+    href: "/dashboard/admin/businesses",
     icon: <BusinessIcon />,
     roles: ["superadmin"],
   },

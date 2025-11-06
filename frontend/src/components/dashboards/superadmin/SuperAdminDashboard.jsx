@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ApiClient } from "@/lib/apiClient";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function SuperAdminDashboard({ userName }) {
   const { session } = useAuth();
@@ -10,11 +11,13 @@ export default function SuperAdminDashboard({ userName }) {
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [showTenantModal, setShowTenantModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedTenant, setSelectedTenant] = useState(null);
   const [users, setUsers] = useState([]);
   const [tenants, setTenants] = useState([]);
   const [roles, setRoles] = useState([]);
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -26,6 +29,7 @@ export default function SuperAdminDashboard({ userName }) {
     name: "",
     slug: "",
     domain: "",
+    isActive: true,
   });
 
   // Load data from backend API
@@ -52,8 +56,32 @@ export default function SuperAdminDashboard({ userName }) {
       setRoles(rolesData.data || []);
       setTenants(tenantsData.data || []);
       setActivities(activitiesData.data || []);
+      setError(null); // Clear any previous errors
     } catch (error) {
       console.error("Failed to load data:", error);
+      
+      // Parse error message
+      let errorMessage = "Failed to load dashboard data";
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+        
+        // Provide helpful context for common errors
+        if (errorMessage.includes('JSON')) {
+          errorMessage = "Server returned invalid response. This might be due to rate limiting or server errors.";
+        } else if (errorMessage.includes('fetch') || errorMessage.includes('Failed to fetch')) {
+          errorMessage = "Cannot connect to backend server. Please make sure it's running on port 5000.";
+        } else if (errorMessage.includes('Too many requests')) {
+          errorMessage = "Too many requests. Please wait a moment and try again.";
+        }
+      }
+      
+      setError(errorMessage);
+      toast.error(errorMessage, {
+        duration: 5000,
+      });
     } finally {
       setLoading(false);
     }
@@ -158,16 +186,18 @@ export default function SuperAdminDashboard({ userName }) {
       if (action === 'suspend' || action === 'activate') {
         const isActive = action === 'activate';
         await api.put(`/api/admin/users/${userId}`, { isActive });
+        toast.success(`User ${action === 'activate' ? 'activated' : 'suspended'} successfully`);
         await loadData(); // Reload data
       } else if (action === 'delete') {
         if (confirm('Are you sure you want to delete this user?')) {
           await api.delete(`/api/admin/users/${userId}`);
+          toast.success('User deleted successfully');
           await loadData(); // Reload data
         }
       }
     } catch (error) {
       console.error(`Failed to ${action} user:`, error);
-      alert(`Failed to ${action} user: ${error.message}`);
+      toast.error(`Failed to ${action} user: ${error.message}`);
     }
   };
 
@@ -196,11 +226,11 @@ export default function SuperAdminDashboard({ userName }) {
 
       setShowUserModal(false);
       setFormData({ name: "", email: "", password: "", roleId: "", tenantId: "" });
-      alert('User created successfully!');
+      toast.success('User created successfully!');
       await loadData(); // Reload users
     } catch (error) {
       console.error("Failed to create user:", error);
-      alert(`Failed to create user: ${error.message}`);
+      toast.error(`Failed to create user: ${error.message}`);
     }
   };
 
@@ -214,13 +244,66 @@ export default function SuperAdminDashboard({ userName }) {
       
       console.log('Tenant created successfully:', response);
       setShowTenantModal(false);
-      setTenantFormData({ name: "", slug: "", domain: "" });
-      alert('Business/Tenant created successfully!');
+      setSelectedTenant(null);
+      setTenantFormData({ name: "", slug: "", domain: "", isActive: true });
+      toast.success('Business/Tenant created successfully!');
       await loadData(); // Reload tenants
     } catch (error) {
       console.error("Failed to create tenant:", error);
-      alert(`Failed to create tenant: ${error.message}`);
+      toast.error(`Failed to create tenant: ${error.message}`);
     }
+  };
+
+  const handleUpdateTenant = async (e) => {
+    e.preventDefault();
+    if (!session?.accessToken || !selectedTenant) return;
+
+    try {
+      const api = new ApiClient(session.accessToken);
+      const response = await api.put(`/api/admin/tenants/${selectedTenant.id}`, tenantFormData);
+      
+      console.log('Tenant updated successfully:', response);
+      setShowTenantModal(false);
+      setSelectedTenant(null);
+      setTenantFormData({ name: "", slug: "", domain: "", isActive: true });
+      toast.success('Business/Tenant updated successfully!');
+      await loadData(); // Reload tenants
+    } catch (error) {
+      console.error("Failed to update tenant:", error);
+      toast.error(`Failed to update tenant: ${error.message}`);
+    }
+  };
+
+  const handleDeleteTenant = async (tenantId, tenantName) => {
+    if (!session?.accessToken) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${tenantName}"? This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const api = new ApiClient(session.accessToken);
+      await api.delete(`/api/admin/tenants/${tenantId}`);
+      
+      toast.success('Business/Tenant deleted successfully!');
+      await loadData(); // Reload tenants
+    } catch (error) {
+      console.error("Failed to delete tenant:", error);
+      toast.error(`Failed to delete tenant: ${error.message}`);
+    }
+  };
+
+  const openEditTenantModal = (tenant) => {
+    setSelectedTenant(tenant);
+    setTenantFormData({
+      name: tenant.name,
+      slug: tenant.slug,
+      domain: tenant.domain || "",
+      isActive: tenant.isActive,
+    });
+    setShowTenantModal(true);
   };
 
   const getRoleColor = (role) => {
@@ -294,11 +377,77 @@ export default function SuperAdminDashboard({ userName }) {
     );
   }
 
+  // Show error state if data failed to load
+  if (error && users.length === 0 && tenants.length === 0) {
+    return (
+      <>
+        <Toaster position="top-right" />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+              <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Failed to Load Dashboard</h3>
+            <p className="text-sm text-gray-500 mb-6">{error}</p>
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  setLoading(true);
+                  setError(null);
+                  loadData();
+                }}
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
+              >
+                Retry Loading
+              </button>
+              <div className="text-left bg-gray-50 rounded-md p-3">
+                <p className="text-xs font-semibold text-gray-700 mb-2">Troubleshooting:</p>
+                <ul className="text-xs text-gray-600 space-y-1">
+                  <li>• Backend server running on port 5000?</li>
+                  <li>• Check browser console for details</li>
+                  <li>• Verify you&apos;re logged in as super_admin</li>
+                  <li>• Database connection working?</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">SuperAdmin Dashboard</h1>
+    <>
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+          success: {
+            duration: 3000,
+            iconTheme: {
+              primary: '#10b981',
+              secondary: '#fff',
+            },
+          },
+          error: {
+            duration: 4000,
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
+      <div className="space-y-6">
+        {/* Page Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">SuperAdmin Dashboard</h1>
         <p className="mt-2 text-gray-600">
           Welcome back, {userName}! Manage your entire system from here.
         </p>
@@ -606,10 +755,16 @@ export default function SuperAdminDashboard({ userName }) {
                       {new Date(tenant.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm space-x-2">
-                      <button className="text-blue-600 hover:text-blue-800 font-medium">
+                      <button 
+                        onClick={() => openEditTenantModal(tenant)}
+                        className="text-blue-600 hover:text-blue-800 font-medium"
+                      >
                         Edit
                       </button>
-                      <button className="text-red-600 hover:text-red-800 font-medium">
+                      <button 
+                        onClick={() => handleDeleteTenant(tenant.id, tenant.name)}
+                        className="text-red-600 hover:text-red-800 font-medium"
+                      >
                         Delete
                       </button>
                     </td>
@@ -861,16 +1016,19 @@ export default function SuperAdminDashboard({ userName }) {
         </div>
       )}
 
-      {/* Add Tenant/Business Modal */}
+      {/* Add/Edit Tenant/Business Modal */}
       {showTenantModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Add New Business</h3>
+              <h3 className="text-lg font-semibold text-gray-900">
+                {selectedTenant ? 'Edit Business' : 'Add New Business'}
+              </h3>
               <button
                 onClick={() => {
                   setShowTenantModal(false);
-                  setTenantFormData({ name: "", slug: "", domain: "" });
+                  setSelectedTenant(null);
+                  setTenantFormData({ name: "", slug: "", domain: "", isActive: true });
                 }}
                 className="text-gray-400 hover:text-gray-600"
               >
@@ -880,7 +1038,7 @@ export default function SuperAdminDashboard({ userName }) {
               </button>
             </div>
             
-            <form onSubmit={handleCreateTenant} className="space-y-4">
+            <form onSubmit={selectedTenant ? handleUpdateTenant : handleCreateTenant} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Business Name *
@@ -925,12 +1083,28 @@ export default function SuperAdminDashboard({ userName }) {
                 />
               </div>
 
+              {selectedTenant && (
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="isActive"
+                    checked={tenantFormData.isActive}
+                    onChange={(e) => setTenantFormData({ ...tenantFormData, isActive: e.target.checked })}
+                    className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
+                    Active
+                  </label>
+                </div>
+              )}
+
               <div className="flex justify-end space-x-3 mt-6">
                 <button
                   type="button"
                   onClick={() => {
                     setShowTenantModal(false);
-                    setTenantFormData({ name: "", slug: "", domain: "" });
+                    setSelectedTenant(null);
+                    setTenantFormData({ name: "", slug: "", domain: "", isActive: true });
                   }}
                   className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                 >
@@ -940,13 +1114,14 @@ export default function SuperAdminDashboard({ userName }) {
                   type="submit"
                   className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
                 >
-                  Add Business
+                  {selectedTenant ? 'Update Business' : 'Add Business'}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }
