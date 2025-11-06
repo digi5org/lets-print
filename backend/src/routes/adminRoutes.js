@@ -10,7 +10,9 @@ import {
   createTenant,
   getAllTenants,
   updateTenant,
+  deleteTenant,
   getActivities,
+  impersonateBusiness,
 } from '../controllers/adminController.js';
 import { authenticate, requireSuperAdmin, requirePermission } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
@@ -190,6 +192,42 @@ router.put(
   ],
   validate,
   updateTenant
+);
+
+/**
+ * @route   DELETE /api/admin/tenants/:id
+ * @desc    Delete a tenant
+ * @access  Super Admin only
+ */
+router.delete(
+  '/tenants/:id',
+  [
+    param('id').isUUID().withMessage('Invalid tenant ID'),
+  ],
+  validate,
+  deleteTenant
+);
+
+/**
+ * Impersonation Routes
+ */
+
+/**
+ * @route   POST /api/admin/impersonate/:id
+ * @desc    Impersonate a business owner (login as business with read-only access)
+ * @access  Super Admin only
+ */
+router.post(
+  '/impersonate/:id',
+  [
+    param('id').isUUID().withMessage('Invalid tenant ID'),
+    body('readOnly')
+      .optional()
+      .isBoolean()
+      .withMessage('readOnly must be a boolean'),
+  ],
+  validate,
+  impersonateBusiness
 );
 
 /**

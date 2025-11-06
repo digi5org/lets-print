@@ -228,10 +228,6 @@ export const updateUser = async (req, res, next) => {
     const user = await prisma.user.update({
       where: { id },
       data: updateData,
-      include: {
-        role: true,
-        tenant: true,
-      },
       select: {
         id: true,
         email: true,
@@ -242,8 +238,20 @@ export const updateUser = async (req, res, next) => {
         emailVerified: true,
         createdAt: true,
         updatedAt: true,
-        role: true,
-        tenant: true,
+        role: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+          },
+        },
+        tenant: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
       },
     });
 
@@ -450,10 +458,83 @@ export const updateTenant = async (req, res, next) => {
       data: updateData,
     });
 
+    // Log activity
+    const requestInfo = getRequestInfo(req);
+    await logActivity({
+      action: 'business_updated',
+      userId: req.user.userId,
+      entityType: 'tenant',
+      entityId: tenant.id,
+      entityName: tenant.name,
+      metadata: { updatedFields: Object.keys(updateData) },
+      ...requestInfo,
+    });
+
     res.json({
       success: true,
       message: 'Tenant updated successfully',
       data: tenant,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Delete tenant
+ */
+export const deleteTenant = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    // Check if tenant exists
+    const tenant = await prisma.tenant.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: {
+            users: true,
+            products: true,
+          },
+        },
+      },
+    });
+
+    if (!tenant) {
+      return res.status(404).json({
+        success: false,
+        message: 'Tenant not found',
+      });
+    }
+
+    // Check if tenant has users or products
+    if (tenant._count.users > 0 || tenant._count.products > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot delete tenant. It has ${tenant._count.users} user(s) and ${tenant._count.products} product(s). Please remove them first.`,
+      });
+    }
+
+    // Delete tenant
+    await prisma.tenant.delete({
+      where: { id },
+    });
+
+    // Log activity
+    const requestInfo = getRequestInfo(req);
+    await logActivity({
+      action: 'business_deleted',
+      userId: req.user.userId,
+      entityType: 'tenant',
+      entityId: id,
+      entityName: tenant.name,
+      metadata: { deletedBy: 'admin' },
+      ...requestInfo,
+    });
+
+    res.json({
+      success: true,
+      message: 'Tenant deleted successfully',
     });
   } catch (error) {
     next(error);
@@ -476,6 +557,108 @@ export const getActivities = async (req, res, next) => {
     res.json({
       success: true,
       data: activities,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Impersonate a business owner (super_admin only)
+ * Allows super admin to login as a business with read-only access
+ */
+export const impersonateBusiness = async (req, res, next) => {
+  try {
+    const { id: tenantId } = req.params;
+    const { readOnly = true } = req.body;
+
+    // Verify tenant exists
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: tenantId },
+      include: {
+        users: {
+          include: {
+            role: true,
+          },
+          where: {
+            role: {
+              name: 'business_owner',
+            },
+          },
+          take: 1,
+        },
+      },
+    });
+
+    if (!tenant) {
+      return res.status(404).json({
+        success: false,
+        message: 'Business not found',
+      });
+    }
+
+    // Find or get a business_owner user for this tenant
+    let businessOwner = tenant.users[0];
+
+    if (!businessOwner) {
+      return res.status(400).json({
+        success: false,
+        message: 'No business owner found for this tenant',
+      });
+    }
+
+    // Import JWT for token generation
+    const jwt = await import('jsonwebtoken');
+    const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+
+    // Create impersonation token with special flags
+    const token = jwt.default.sign(
+      {
+        userId: businessOwner.id,
+        email: businessOwner.email,
+        role: businessOwner.role.name,
+        tenantId: tenant.id,
+        impersonatedBy: req.user.userId,
+        readOnly: readOnly,
+        isImpersonation: true,
+      },
+      JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+
+    // Log activity
+    const requestInfo = getRequestInfo(req);
+    await logActivity({
+      action: 'admin_impersonation',
+      userId: req.user.userId,
+      entityType: 'tenant',
+      entityId: tenant.id,
+      entityName: tenant.name,
+      metadata: { 
+        impersonatedUser: businessOwner.email,
+        readOnly: readOnly,
+      },
+      ...requestInfo,
+    });
+
+    res.json({
+      success: true,
+      message: 'Impersonation token generated',
+      data: {
+        token,
+        user: {
+          id: businessOwner.id,
+          email: businessOwner.email,
+          name: businessOwner.name,
+          role: businessOwner.role.name,
+          tenantId: tenant.id,
+          tenantName: tenant.name,
+        },
+        impersonation: {
+          readOnly: readOnly,
+          impersonatedBy: req.user.userId,
+        },
+      },
     });
   } catch (error) {
     next(error);
