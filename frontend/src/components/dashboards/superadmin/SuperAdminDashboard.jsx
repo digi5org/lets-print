@@ -13,6 +13,7 @@ export default function SuperAdminDashboard({ userName }) {
   const [users, setUsers] = useState([]);
   const [tenants, setTenants] = useState([]);
   const [roles, setRoles] = useState([]);
+  const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: "",
@@ -33,29 +34,24 @@ export default function SuperAdminDashboard({ userName }) {
     
     try {
       const api = new ApiClient(session.accessToken);
-      const [usersData, rolesData, tenantsData] = await Promise.all([
+      const [usersData, rolesData, tenantsData, activitiesData] = await Promise.all([
         api.get("/api/admin/users"),
         api.get("/api/admin/roles"),
         api.get("/api/admin/tenants"),
+        api.get("/api/admin/activities?limit=10"),
       ]);
       
       console.log('=== API Response Debug ===');
       console.log('Users response:', usersData);
       console.log('Roles response:', rolesData);
       console.log('Tenants response:', tenantsData);
-      console.log('Tenants array:', tenantsData.data);
-      console.log('Tenants count:', tenantsData.data?.length);
+      console.log('Activities response:', activitiesData);
       console.log('========================');
       
       setUsers(usersData.data || []);
       setRoles(rolesData.data || []);
       setTenants(tenantsData.data || []);
-      
-      console.log('State after setting:', {
-        usersCount: usersData.data?.length,
-        rolesCount: rolesData.data?.length,
-        tenantsCount: tenantsData.data?.length
-      });
+      setActivities(activitiesData.data || []);
     } catch (error) {
       console.error("Failed to load data:", error);
     } finally {
@@ -106,13 +102,52 @@ export default function SuperAdminDashboard({ userName }) {
     },
   ];
 
-  const recentActivity = [
-    { id: 1, action: "New user registration", user: "Alice Brown", time: "5 minutes ago", type: "user" },
-    { id: 2, action: "Subscription upgraded", user: "PrintHub Co", time: "1 hour ago", type: "subscription" },
-    { id: 3, action: "System backup completed", user: "System", time: "2 hours ago", type: "system" },
-    { id: 4, action: "User suspended", user: "Robert Wilson", time: "3 hours ago", type: "user" },
-    { id: 5, action: "New business registered", user: "FastPrint Ltd", time: "5 hours ago", type: "business" },
-  ];
+  // Format activity for display
+  const formatActivity = (activity) => {
+    const actionMap = {
+      'user_created': 'New user created',
+      'user_registered': 'New user registration',
+      'user_login': 'User logged in',
+      'user_suspended': 'User suspended',
+      'user_activated': 'User activated',
+      'user_updated': 'User updated',
+      'user_deleted': 'User deleted',
+      'business_created': 'New business registered',
+      'system_backup': 'System backup completed',
+    };
+
+    const typeMap = {
+      'user_created': 'user',
+      'user_registered': 'user',
+      'user_login': 'user',
+      'user_suspended': 'user',
+      'user_activated': 'user',
+      'user_updated': 'user',
+      'user_deleted': 'user',
+      'business_created': 'business',
+      'system_backup': 'system',
+    };
+
+    return {
+      id: activity.id,
+      action: actionMap[activity.action] || activity.action,
+      user: activity.entityName || activity.user?.name || 'System',
+      time: formatTimeAgo(activity.createdAt),
+      type: typeMap[activity.action] || activity.entityType || 'system',
+    };
+  };
+
+  const formatTimeAgo = (date) => {
+    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+    
+    if (seconds < 60) return 'Just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+    if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
+    return new Date(date).toLocaleDateString();
+  };
+
+  const recentActivity = activities.map(formatActivity);
 
   const handleUserAction = async (userId, action) => {
     if (!session?.accessToken) return;

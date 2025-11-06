@@ -100,6 +100,7 @@ model User {
   tenant        Tenant?   @relation(fields: [tenantId], references: [id], onDelete: SetNull)
   orders        Order[]
   designs       Design[]
+  activityLogs  ActivityLog[]
 
   @@map("users")
   @@index([roleId])
@@ -178,4 +179,25 @@ model Design {
 
   @@map("designs")
   @@index([userId])
+}
+
+// Activity Log model for tracking system activities
+model ActivityLog {
+  id          String   @id @default(uuid())
+  userId      String?  // Nullable for system actions
+  action      String   // e.g., "user_created", "subscription_upgraded", "system_backup"
+  entityType  String?  // e.g., "user", "business", "subscription", "system"
+  entityId    String?  // ID of the affected entity
+  entityName  String?  // Name/description of the affected entity
+  metadata    Json?    // Additional data about the action
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("activity_logs")
+  @@index([userId])
+  @@index([entityType])
+  @@index([createdAt])
 }
