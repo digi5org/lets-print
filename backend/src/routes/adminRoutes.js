@@ -10,6 +10,7 @@ import {
   createTenant,
   getAllTenants,
   updateTenant,
+  getActivities,
 } from '../controllers/adminController.js';
 import { authenticate, requireSuperAdmin, requirePermission } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
@@ -190,5 +191,16 @@ router.put(
   validate,
   updateTenant
 );
+
+/**
+ * Activity Log Routes
+ */
+
+/**
+ * @route   GET /api/admin/activities
+ * @desc    Get recent activity logs
+ * @access  Super Admin only
+ */
+router.get('/activities', getActivities);
 
 export default router;

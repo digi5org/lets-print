@@ -1,6 +1,7 @@
 import prisma from '../config/database.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { logActivity, getRequestInfo } from '../services/activityService.js';
 
 // JWT secret key - should be in .env
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
@@ -66,6 +67,17 @@ export const signup = async (req, res, next) => {
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
+
+    // Log activity
+    const requestInfo = getRequestInfo(req);
+    await logActivity({
+      action: 'user_registered',
+      userId: user.id,
+      entityType: 'user',
+      entityId: user.id,
+      entityName: user.name || user.email,
+      ...requestInfo,
+    });
 
     res.status(201).json({
       success: true,
@@ -157,6 +169,18 @@ export const login = async (req, res, next) => {
 
     // Remove sensitive data from response
     const { password: _, ...userWithoutPassword } = user;
+
+    // Log activity
+    const requestInfo = getRequestInfo(req);
+    await logActivity({
+      action: 'user_login',
+      userId: user.id,
+      entityType: 'user',
+      entityId: user.id,
+      entityName: user.name || user.email,
+      metadata: { role: user.role.name },
+      ...requestInfo,
+    });
 
     res.json({
       success: true,

@@ -2,6 +2,7 @@ import prisma from '../config/database.js';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { sendVerificationEmail } from '../services/emailService.js';
+import { getRecentActivities, logActivity, getRequestInfo } from '../services/activityService.js';
 
 /**
  * Generate a secure random token
@@ -87,6 +88,18 @@ export const createUser = async (req, res, next) => {
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
+
+    // Log activity
+    const requestInfo = getRequestInfo(req);
+    await logActivity({
+      action: 'user_created',
+      userId: req.user.userId,
+      entityType: 'user',
+      entityId: user.id,
+      entityName: user.name || user.email,
+      metadata: { role: role.name, createdBy: 'admin' },
+      ...requestInfo,
+    });
 
     res.status(201).json({
       success: true,
@@ -234,6 +247,19 @@ export const updateUser = async (req, res, next) => {
       },
     });
 
+    // Log activity
+    const requestInfo = getRequestInfo(req);
+    const action = isActive === false ? 'user_suspended' : isActive === true ? 'user_activated' : 'user_updated';
+    await logActivity({
+      action,
+      userId: req.user.userId,
+      entityType: 'user',
+      entityId: user.id,
+      entityName: user.name || user.email,
+      metadata: { updatedFields: Object.keys(updateData) },
+      ...requestInfo,
+    });
+
     res.json({
       success: true,
       message: 'User updated successfully',
@@ -259,8 +285,24 @@ export const deleteUser = async (req, res, next) => {
       });
     }
 
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: { name: true, email: true },
+    });
+
     await prisma.user.delete({
       where: { id },
+    });
+
+    // Log activity
+    const requestInfo = getRequestInfo(req);
+    await logActivity({
+      action: 'user_deleted',
+      userId: req.user.userId,
+      entityType: 'user',
+      entityId: id,
+      entityName: user?.name || user?.email || 'Unknown user',
+      ...requestInfo,
     });
 
     res.json({
@@ -342,6 +384,17 @@ export const createTenant = async (req, res, next) => {
       },
     });
 
+    // Log activity
+    const requestInfo = getRequestInfo(req);
+    await logActivity({
+      action: 'business_created',
+      userId: req.user.userId,
+      entityType: 'business',
+      entityId: tenant.id,
+      entityName: tenant.name,
+      ...requestInfo,
+    });
+
     res.status(201).json({
       success: true,
       message: 'Tenant created successfully',
@@ -401,6 +454,28 @@ export const updateTenant = async (req, res, next) => {
       success: true,
       message: 'Tenant updated successfully',
       data: tenant,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get recent activity logs
+ */
+export const getActivities = async (req, res, next) => {
+  try {
+    const { limit = 20, userId, entityType } = req.query;
+
+    const activities = await getRecentActivities({
+      limit: parseInt(limit),
+      userId,
+      entityType,
+    });
+
+    res.json({
+      success: true,
+      data: activities,
     });
   } catch (error) {
     next(error);
