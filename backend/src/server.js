@@ -15,6 +15,11 @@ import productRoutes from './routes/productRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import designRoutes from './routes/designRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import productionRoutes from './routes/productionRoutes.js';
+import dashboardRoutes from './routes/dashboardRoutes.js';
+import materialRoutes from './routes/materialRoutes.js';
+import equipmentRoutes from './routes/equipmentRoutes.js';
+import deliveryRoutes from './routes/deliveryRoutes.js';
 
 // Import middleware
 import { errorHandler, notFound } from './middleware/errorHandler.js';
@@ -77,6 +82,11 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/designs', designRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/production', productionRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/materials', materialRoutes);
+app.use('/api/equipment', equipmentRoutes);
+app.use('/api/deliveries', deliveryRoutes);
 
 // 404 handler
 app.use(notFound);
