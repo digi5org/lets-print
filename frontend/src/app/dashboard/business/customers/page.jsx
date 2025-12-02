@@ -1,7 +1,7 @@
 "use client";
 
-import CustomersLeadsSection from "@/components/dashboards/businessowner/CustomersLeadsSection";
+import CustomersPage from "@/components/dashboards/businessowner/CustomersPage";
 
-export default function CustomersPage() {
-  return <CustomersLeadsSection />;
+export default function CustomersPageRoute() {
+  return <CustomersPage />;
 }
