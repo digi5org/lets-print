@@ -4,12 +4,18 @@ import prisma from '../config/database.js';
 export const getAllOrders = async (req, res, next) => {
   try {
     const { status } = req.query;
-    const isAdmin = req.user.role === 'ADMIN';
+    const isAdmin = req.user.roleName === 'super_admin';
+    const { userId, tenantId } = req.user;
 
     const where = {};
     
     if (!isAdmin) {
-      where.userId = req.user.id;
+      // For non-admin users, show orders from their tenant or their own orders
+      if (tenantId) {
+        where.tenantId = tenantId;
+      } else {
+        where.userId = userId;
+      }
     }
     
     if (status) {
@@ -49,7 +55,8 @@ export const getAllOrders = async (req, res, next) => {
 export const getOrderById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const isAdmin = req.user.role === 'ADMIN';
+    const isAdmin = req.user.roleName === 'super_admin';
+    const { userId } = req.user;
 
     const order = await prisma.order.findUnique({
       where: { id },
@@ -78,7 +85,7 @@ export const getOrderById = async (req, res, next) => {
     }
 
     // Check if user owns the order or is admin
-    if (!isAdmin && order.userId !== req.user.id) {
+    if (!isAdmin && order.userId !== userId) {
       return res.status(403).json({
         success: false,
         message: 'Access denied',
@@ -97,8 +104,9 @@ export const getOrderById = async (req, res, next) => {
 // Create order
 export const createOrder = async (req, res, next) => {
   try {
-    const { items, notes } = req.body;
-    const userId = req.user.id;
+    const { items, notes, priority, dueDate } = req.body;
+    const userId = req.user.userId;
+    const tenantId = req.user.tenantId;
 
     // Validate items
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -146,8 +154,11 @@ export const createOrder = async (req, res, next) => {
     const order = await prisma.order.create({
       data: {
         userId,
+        tenantId,
         totalAmount,
         notes,
+        priority: priority || 'Medium',
+        dueDate: dueDate ? new Date(dueDate) : null,
         orderItems: {
           create: orderItemsData,
         },
@@ -221,7 +232,8 @@ export const updateOrderStatus = async (req, res, next) => {
 export const cancelOrder = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const isAdmin = req.user.role === 'ADMIN';
+    const isAdmin = req.user.roleName === 'super_admin';
+    const { userId } = req.user;
 
     const order = await prisma.order.findUnique({
       where: { id },
@@ -235,7 +247,7 @@ export const cancelOrder = async (req, res, next) => {
     }
 
     // Check if user owns the order or is admin
-    if (!isAdmin && order.userId !== req.user.id) {
+    if (!isAdmin && order.userId !== userId) {
       return res.status(403).json({
         success: false,
         message: 'Access denied',

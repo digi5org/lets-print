@@ -39,6 +39,7 @@ export function AuthProvider({ children }) {
     logout,
     updateUser,
     session,
+    token: session?.accessToken || null, // Add token for convenience
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

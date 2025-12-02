@@ -20,11 +20,11 @@ const router = express.Router();
 router.get('/', getAllProducts);
 router.get('/:id', idParamValidation, validate, getProductById);
 
-// Admin routes - super_admin or users with products:create permission
+// Admin routes - super_admin or users with create_product permission
 router.post(
   '/',
   authenticate,
-  requirePermission('products:create'),
+  requirePermission('create_product'),
   createProductValidation,
   validate,
   createProduct
@@ -33,7 +33,7 @@ router.post(
 router.put(
   '/:id',
   authenticate,
-  requirePermission('products:update'),
+  requirePermission('update_product'),
   updateProductValidation,
   validate,
   updateProduct
@@ -42,7 +42,7 @@ router.put(
 router.delete(
   '/:id',
   authenticate,
-  requirePermission('products:delete'),
+  requirePermission('delete_product'),
   idParamValidation,
   validate,
   deleteProduct

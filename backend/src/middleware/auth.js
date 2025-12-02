@@ -87,10 +87,17 @@ export const requireRole = (...allowedRoles) => {
       });
     }
 
-    if (!allowedRoles.includes(req.user.roleName)) {
+    // Flatten array if passed as single array argument
+    const roles = allowedRoles.length === 1 && Array.isArray(allowedRoles[0]) 
+      ? allowedRoles[0] 
+      : allowedRoles;
+
+    console.log('RequireRole check:', { userRole: req.user.roleName, allowedRoles: roles });
+
+    if (!roles.includes(req.user.roleName)) {
       return res.status(403).json({
         success: false,
-        message: `Access denied. Required role: ${allowedRoles.join(' or ')}`,
+        message: `Access denied. Required role: ${roles.join(' or ')}, but user has: ${req.user.roleName}`,
       });
     }
 

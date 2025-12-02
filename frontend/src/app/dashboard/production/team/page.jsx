@@ -1,16 +1,71 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { ApiClient } from "@/lib/apiClient";
+import toast from "react-hot-toast";
 
 export default function TeamManagementPage() {
-  const [selectedRole, setSelectedRole] = useState("all");
+  const { user, session } = useAuth();
+  const [selectedDepartment, setSelectedDepartment] = useState("all");
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedMember, setSelectedMember] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    department: "",
+  });
 
-  const teamMembers = [
+  // Check if user can manage team (add/edit/delete)
+  const canManageTeam = user?.roleName === "production_owner" || user?.roleName === "production_manager";
+
+  // Debug logging
+  useEffect(() => {
+    console.log('🔍 User object:', user);
+    console.log('👤 User roleName:', user?.roleName);
+    console.log('🔐 Can manage team:', canManageTeam);
+  }, [user, canManageTeam]);
+
+  // Fetch team members
+  const fetchTeamMembers = async () => {
+    try {
+      setLoading(true);
+      if (!session?.accessToken) {
+        console.error("No access token available");
+        setTeamMembers(getSampleTeamMembers());
+        return;
+      }
+      const api = new ApiClient(session.accessToken);
+      const response = await api.get("/api/production/team");
+      setTeamMembers(response.members || []);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+      toast.error("Failed to load team members");
+      // Fallback to sample data for demo
+      setTeamMembers(getSampleTeamMembers());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (session?.accessToken) {
+      fetchTeamMembers();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.accessToken]);
+
+  const getSampleTeamMembers = () => [
     {
       id: 1,
       name: "John Smith",
       email: "john.smith@letsprint.com",
       role: "Production Manager",
+      department: "Production",
       status: "Active",
       avatar: "👨‍💼",
       joinedDate: "Jan 15, 2024",
@@ -21,6 +76,7 @@ export default function TeamManagementPage() {
       name: "Sarah Johnson",
       email: "sarah.j@letsprint.com",
       role: "Quality Inspector",
+      department: "Quality Control",
       status: "Active",
       avatar: "👩‍🔬",
       joinedDate: "Mar 22, 2024",
@@ -31,6 +87,7 @@ export default function TeamManagementPage() {
       name: "Mike Davis",
       email: "mike.d@letsprint.com",
       role: "Machine Operator",
+      department: "Production",
       status: "Active",
       avatar: "👨‍🔧",
       joinedDate: "Feb 10, 2024",
@@ -41,6 +98,7 @@ export default function TeamManagementPage() {
       name: "Emily Chen",
       email: "emily.c@letsprint.com",
       role: "Delivery Coordinator",
+      department: "Delivery",
       status: "Active",
       avatar: "👩‍💼",
       joinedDate: "Apr 5, 2024",
@@ -51,6 +109,7 @@ export default function TeamManagementPage() {
       name: "Robert Wilson",
       email: "robert.w@letsprint.com",
       role: "Machine Operator",
+      department: "Production",
       status: "Offline",
       avatar: "👨‍🏭",
       joinedDate: "May 18, 2024",
@@ -58,23 +117,132 @@ export default function TeamManagementPage() {
     },
   ];
 
+  const handleAddMember = async (e) => {
+    e.preventDefault();
+    try {
+      if (!session?.accessToken) {
+        toast.error("Authentication required");
+        return;
+      }
+      const api = new ApiClient(session.accessToken);
+      const response = await api.post("/api/production/team", formData);
+      toast.success("Team member added successfully!");
+      setTeamMembers([...teamMembers, response.member]);
+      setShowAddModal(false);
+      setFormData({ name: "", email: "", department: "" });
+    } catch (error) {
+      console.error("Error adding member:", error);
+      toast.error(error.message || "Failed to add team member");
+    }
+  };
+
+  const handleEditMember = async (e) => {
+    e.preventDefault();
+    try {
+      if (!session?.accessToken) {
+        toast.error("Authentication required");
+        return;
+      }
+      const api = new ApiClient(session.accessToken);
+      const response = await api.put(`/api/production/team/${selectedMember.id}`, formData);
+      toast.success("Team member updated successfully!");
+      setTeamMembers(teamMembers.map(m => m.id === selectedMember.id ? response.member : m));
+      setShowEditModal(false);
+      setSelectedMember(null);
+      setFormData({ name: "", email: "", role: "production_staff", department: "" });
+    } catch (error) {
+      console.error("Error updating member:", error);
+      toast.error(error.message || "Failed to update team member");
+    }
+  };
+
+  const handleDeleteMember = async (memberId) => {
+    if (!confirm("Are you sure you want to remove this team member?")) return;
+    
+    try {
+      if (!session?.accessToken) {
+        toast.error("Authentication required");
+        return;
+      }
+      const api = new ApiClient(session.accessToken);
+      await api.delete(`/api/production/team/${memberId}`);
+      toast.success("Team member removed successfully!");
+      setTeamMembers(teamMembers.filter(m => m.id !== memberId));
+    } catch (error) {
+      console.error("Error deleting member:", error);
+      toast.error(error.message || "Failed to remove team member");
+    }
+  };
+
+  const openEditModal = (member) => {
+    setSelectedMember(member);
+    setFormData({
+      name: member.name,
+      email: member.email,
+      role: member.role,
+      department: member.department,
+    });
+    setShowEditModal(true);
+  };
+
+  // Filter team members
+  const filteredMembers = teamMembers.filter(member => {
+    const matchesDepartment = selectedDepartment === "all" || 
+      member.department.toLowerCase().includes(selectedDepartment.toLowerCase());
+    const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.email.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesDepartment && matchesSearch;
+  });
+
+  // Calculate stats
   const stats = [
-    { label: "Total Team Members", value: "24", icon: "👥" },
-    { label: "Active Now", value: "18", icon: "🟢" },
-    { label: "On Leave", value: "2", icon: "🏖️" },
-    { label: "Departments", value: "4", icon: "🏢" },
+    { label: "Total Team Members", value: teamMembers.length, icon: "👥" },
+    { label: "Active Now", value: teamMembers.filter(m => m.status === "Active").length, icon: "🟢" },
+    { label: "Offline", value: teamMembers.filter(m => m.status === "Offline").length, icon: "🔴" },
+    { 
+      label: "Departments", 
+      value: [...new Set(teamMembers.map(m => m.department))].filter(Boolean).length, 
+      icon: "🏢" 
+    },
   ];
 
   const departments = [
-    { name: "Production", members: 12, icon: "🏭" },
-    { name: "Quality Control", members: 4, icon: "✅" },
-    { name: "Delivery", members: 5, icon: "🚚" },
-    { name: "Maintenance", members: 3, icon: "🔧" },
+    { 
+      name: "Production", 
+      members: teamMembers.filter(m => m.department === "Production").length, 
+      icon: "🏭" 
+    },
+    { 
+      name: "Quality Control", 
+      members: teamMembers.filter(m => m.department === "Quality Control").length, 
+      icon: "✅" 
+    },
+    { 
+      name: "Delivery", 
+      members: teamMembers.filter(m => m.department === "Delivery").length, 
+      icon: "🚚" 
+    },
+    { 
+      name: "Maintenance", 
+      members: teamMembers.filter(m => m.department === "Maintenance").length, 
+      icon: "🔧" 
+    },
   ];
 
   const getStatusColor = (status) => {
     return status === "Active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700";
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading team members...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -87,12 +255,17 @@ export default function TeamManagementPage() {
               Manage your production team and assignments
             </p>
           </div>
-          <button className="bg-white text-teal-600 hover:bg-teal-50 px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Add Team Member
-          </button>
+          {canManageTeam && (
+            <button 
+              onClick={() => setShowAddModal(true)}
+              className="bg-white text-teal-600 hover:bg-teal-50 px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Add Team Member
+            </button>
+          )}
         </div>
       </div>
 
@@ -129,55 +302,96 @@ export default function TeamManagementPage() {
         </div>
       </div>
 
-      {/* Role Filter */}
+      {/* Role Filter & Search */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="flex flex-col md:flex-row gap-4 mb-4">
+          <div className="flex-1">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search team members..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              />
+              <svg 
+                className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
         <div className="flex flex-wrap gap-2">
           <button
-            onClick={() => setSelectedRole("all")}
+            onClick={() => setSelectedDepartment("all")}
             className={`px-4 py-2 rounded-lg font-medium transition-all ${
-              selectedRole === "all"
+              selectedDepartment === "all"
                 ? "bg-teal-600 text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            All Members
+            All Departments
           </button>
           <button
-            onClick={() => setSelectedRole("manager")}
+            onClick={() => setSelectedDepartment("production")}
             className={`px-4 py-2 rounded-lg font-medium transition-all ${
-              selectedRole === "manager"
+              selectedDepartment === "production"
                 ? "bg-teal-600 text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            Managers
+            Production
           </button>
           <button
-            onClick={() => setSelectedRole("operator")}
+            onClick={() => setSelectedDepartment("quality")}
             className={`px-4 py-2 rounded-lg font-medium transition-all ${
-              selectedRole === "operator"
+              selectedDepartment === "quality"
                 ? "bg-teal-600 text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            Operators
+            Quality Control
           </button>
           <button
-            onClick={() => setSelectedRole("coordinator")}
+            onClick={() => setSelectedDepartment("maintenance")}
             className={`px-4 py-2 rounded-lg font-medium transition-all ${
-              selectedRole === "coordinator"
+              selectedDepartment === "maintenance"
                 ? "bg-teal-600 text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            Coordinators
+            Maintenance
           </button>
         </div>
       </div>
 
       {/* Team Members Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {teamMembers.map((member) => (
+      {filteredMembers.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+          <div className="text-6xl mb-4">👥</div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">No team members found</h3>
+          <p className="text-gray-600 mb-4">
+            {searchTerm ? "Try adjusting your search terms" : "Add your first team member to get started"}
+          </p>
+          {!searchTerm && (
+            <button 
+              onClick={() => setShowAddModal(true)}
+              className="bg-teal-600 text-white px-6 py-2 rounded-lg hover:bg-teal-700 transition-all inline-flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Add Team Member
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredMembers.map((member) => (
           <div key={member.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow">
             <div className="bg-gradient-to-br from-teal-50 to-teal-100 h-20"></div>
             <div className="px-6 pb-6">
@@ -191,7 +405,7 @@ export default function TeamManagementPage() {
               </div>
               <div className="mb-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-1">{member.name}</h3>
-                <p className="text-sm text-teal-600 font-medium mb-1">{member.role}</p>
+                <p className="text-sm text-teal-600 font-medium mb-1">{member.department}</p>
                 <p className="text-xs text-gray-500">{member.email}</p>
               </div>
               <div className="space-y-2 mb-4 text-xs text-gray-600">
@@ -208,20 +422,29 @@ export default function TeamManagementPage() {
                   <span>Last active {member.lastActive}</span>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <button className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-all text-sm font-medium">
-                  View Profile
-                </button>
-                <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all text-sm font-medium">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                </button>
-              </div>
+              {canManageTeam && (
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => openEditModal(member)}
+                    className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-all text-sm font-medium"
+                  >
+                    Edit Profile
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteMember(member.id)}
+                    className="px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-all text-sm font-medium"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {/* Activity Log */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -246,6 +469,156 @@ export default function TeamManagementPage() {
           ))}
         </div>
       </div>
+
+      {/* Add Member Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">Add Team Member</h3>
+              <button 
+                onClick={() => setShowAddModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <form onSubmit={handleAddMember} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  placeholder="Enter full name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  placeholder="email@example.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                <select
+                  required
+                  value={formData.department}
+                  onChange={(e) => setFormData({...formData, department: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                >
+                  <option value="">Select Department</option>
+                  <option value="Production">Production</option>
+                  <option value="Quality Control">Quality Control</option>
+                  <option value="Delivery">Delivery</option>
+                  <option value="Maintenance">Maintenance</option>
+                </select>
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-all"
+                >
+                  Add Member
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Member Modal */}
+      {showEditModal && selectedMember && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">Edit Team Member</h3>
+              <button 
+                onClick={() => {
+                  setShowEditModal(false);
+                  setSelectedMember(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <form onSubmit={handleEditMember} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                <select
+                  required
+                  value={formData.department}
+                  onChange={(e) => setFormData({...formData, department: e.target.value})}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                >
+                  <option value="">Select Department</option>
+                  <option value="Production">Production</option>
+                  <option value="Quality Control">Quality Control</option>
+                  <option value="Delivery">Delivery</option>
+                  <option value="Maintenance">Maintenance</option>
+                </select>
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setSelectedMember(null);
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-all"
+                >
+                  Update Member
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

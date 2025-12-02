@@ -8,7 +8,7 @@ async function main() {
 
   // Step 1: Create Roles
   console.log('\n📋 Creating roles...');
-  
+
   const roles = [
     {
       name: 'super_admin',
@@ -41,7 +41,7 @@ async function main() {
 
   // Step 2: Create Permissions
   console.log('\n🔐 Creating permissions...');
-  
+
   const permissions = [
     // User management permissions
     { name: 'create_user', description: 'Create new users', resource: 'users', action: 'create' },
@@ -49,32 +49,32 @@ async function main() {
     { name: 'update_user', description: 'Update user information', resource: 'users', action: 'update' },
     { name: 'delete_user', description: 'Delete users', resource: 'users', action: 'delete' },
     { name: 'manage_roles', description: 'Manage user roles', resource: 'users', action: 'manage_roles' },
-    
+
     // Product management permissions
     { name: 'create_product', description: 'Create new products', resource: 'products', action: 'create' },
     { name: 'read_product', description: 'View products', resource: 'products', action: 'read' },
     { name: 'update_product', description: 'Update products', resource: 'products', action: 'update' },
     { name: 'delete_product', description: 'Delete products', resource: 'products', action: 'delete' },
-    
+
     // Order management permissions
     { name: 'create_order', description: 'Create new orders', resource: 'orders', action: 'create' },
     { name: 'read_order', description: 'View orders', resource: 'orders', action: 'read' },
     { name: 'update_order', description: 'Update order status', resource: 'orders', action: 'update' },
     { name: 'delete_order', description: 'Cancel orders', resource: 'orders', action: 'delete' },
     { name: 'manage_all_orders', description: 'Manage all orders across tenants', resource: 'orders', action: 'manage_all' },
-    
+
     // Design management permissions
     { name: 'create_design', description: 'Upload designs', resource: 'designs', action: 'create' },
     { name: 'read_design', description: 'View designs', resource: 'designs', action: 'read' },
     { name: 'update_design', description: 'Update designs', resource: 'designs', action: 'update' },
     { name: 'delete_design', description: 'Delete designs', resource: 'designs', action: 'delete' },
-    
+
     // Tenant management permissions
     { name: 'create_tenant', description: 'Create new tenants', resource: 'tenants', action: 'create' },
     { name: 'read_tenant', description: 'View tenant information', resource: 'tenants', action: 'read' },
     { name: 'update_tenant', description: 'Update tenant settings', resource: 'tenants', action: 'update' },
     { name: 'delete_tenant', description: 'Delete tenants', resource: 'tenants', action: 'delete' },
-    
+
     // System permissions
     { name: 'view_analytics', description: 'View analytics and reports', resource: 'system', action: 'view_analytics' },
     { name: 'manage_settings', description: 'Manage system settings', resource: 'system', action: 'manage_settings' },
@@ -93,7 +93,7 @@ async function main() {
 
   // Step 3: Assign Permissions to Roles
   console.log('\n🔗 Assigning permissions to roles...');
-  
+
   const rolePermissions = {
     super_admin: [
       // Super admin has ALL permissions
@@ -109,8 +109,8 @@ async function main() {
       'view_analytics',
     ],
     production_owner: [
-      // Production owner manages orders and production
-      'read_product',
+      // Production owner manages orders, products, and production
+      'create_product', 'read_product', 'update_product', 'delete_product', // Full product management
       'read_order', 'update_order', // Can update order status for production
       'read_design',
       'view_analytics',
@@ -126,7 +126,7 @@ async function main() {
   for (const [roleName, permissionNames] of Object.entries(rolePermissions)) {
     const role = createdRoles[roleName];
     console.log(`\n  Assigning permissions to ${roleName}:`);
-    
+
     for (const permName of permissionNames) {
       const permission = createdPermissions[permName];
       if (permission) {
@@ -150,9 +150,9 @@ async function main() {
 
   // Step 4: Create Initial Super Admin User
   console.log('\n👤 Creating initial super admin user...');
-  
+
   const hashedPassword = await bcrypt.hash('SuperAdmin@123', 10);
-  
+
   const superAdminUser = await prisma.user.upsert({
     where: { email: 'admin@letsprint.com' },
     update: {},
@@ -165,14 +165,14 @@ async function main() {
       emailVerified: true,
     },
   });
-  
+
   console.log(`  ✓ Super Admin created: ${superAdminUser.email}`);
   console.log(`  ✓ Default password: SuperAdmin@123`);
   console.log(`  ⚠️  IMPORTANT: Change this password immediately after first login!`);
 
   // Step 5: Create Sample Products
   console.log('\n📦 Creating sample products...');
-  
+
   const products = [
     {
       name: 'Business Cards (100 pcs)',
@@ -244,7 +244,7 @@ async function main() {
     const existing = await prisma.product.findFirst({
       where: { name: product.name },
     });
-    
+
     if (!existing) {
       await prisma.product.create({
         data: product,
