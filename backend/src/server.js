@@ -57,6 +57,19 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Root route - provide basic API info
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Welcome to Lets-Print API',
+    docs: '/api',
+    health: '/health',
+  });
+});
+
+// Favicon - return no content to avoid 404 noise in logs
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
