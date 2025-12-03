@@ -391,12 +391,6 @@ export const navigationItems = [
     roles: ["business_owner"],
   },
   {
-    name: "Dashboard",
-    href: "/dashboard/business",
-    icon: <HomeIcon />,
-    roles: ["business_owner"],
-  },
-  {
     name: "Designs & Proofs",
     href: "/dashboard/business/designs",
     icon: <DesignLibraryIcon />,
@@ -490,12 +484,6 @@ export const navigationItems = [
     name: "Notices",
     href: "/dashboard/admin/notices",
     icon: <NoticesIcon />,
-    roles: ["superadmin"],
-  },
-  {
-    name: "User Access",
-    href: "/dashboard/admin/user-access",
-    icon: <UserAccessIcon />,
     roles: ["superadmin"],
   },
   {
