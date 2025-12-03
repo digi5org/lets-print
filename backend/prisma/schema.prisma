@@ -76,6 +76,10 @@ model Tenant {
   
   users       User[]
   products    Product[]
+  materials   Material[]
+  equipment   Equipment[]
+  deliveries  Delivery[]
+  tickets     Ticket[]
 
   @@map("tenants")
 }
@@ -102,6 +106,9 @@ model User {
   orders        Order[]
   designs       Design[]
   activityLogs  ActivityLog[]
+  createdTickets   Ticket[]        @relation("TicketCreator")
+  assignedTickets  Ticket[]        @relation("TicketAssignee")
+  ticketComments   TicketComment[]
 
   @@map("users")
   @@index([roleId])
@@ -203,6 +210,8 @@ model Material {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
   @@map("materials")
   @@index([tenantId])
   @@index([category])
@@ -228,6 +237,7 @@ model Equipment {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   maintenanceLogs   EquipmentMaintenance[]
 
   @@map("equipment")
@@ -276,12 +286,64 @@ model Delivery {
   updatedAt           DateTime @updatedAt
 
   order               Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  tenant              Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@map("deliveries")
   @@index([tenantId])
   @@index([orderId])
   @@index([status])
   @@index([trackingNumber])
+}
+
+// Ticket model for support and issue tracking
+model Ticket {
+  id              String         @id @default(uuid())
+  ticketNumber    String         @unique // e.g., TKT-001
+  title           String
+  description     String?        @db.Text
+  priority        String         @default("Medium") // Low, Medium, High, Critical
+  status          String         @default("Open") // Open, In Progress, Resolved, Closed
+  category        String         // Quality, Delivery, Billing, Design, Technical, Other
+  customerId      String?        // Optional reference to customer
+  customerName    String?        // Customer name if not linked to user
+  assignedTo      String?        // User ID of assigned staff
+  tenantId        String
+  createdBy       String
+  resolvedAt      DateTime?
+  closedAt        DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  tenant          Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  creator         User           @relation("TicketCreator", fields: [createdBy], references: [id])
+  assignedUser    User?          @relation("TicketAssignee", fields: [assignedTo], references: [id])
+  comments        TicketComment[]
+
+  @@map("tickets")
+  @@index([tenantId])
+  @@index([status])
+  @@index([priority])
+  @@index([category])
+  @@index([assignedTo])
+  @@index([createdBy])
+}
+
+// Ticket Comment model for ticket communication
+model TicketComment {
+  id          String   @id @default(uuid())
+  ticketId    String
+  userId      String
+  comment     String   @db.Text
+  isInternal  Boolean  @default(false) // Internal notes vs customer-visible
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  ticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@map("ticket_comments")
+  @@index([ticketId])
+  @@index([userId])
 }
 
 // Activity Log model for tracking system activities

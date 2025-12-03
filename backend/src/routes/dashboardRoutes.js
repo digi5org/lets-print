@@ -15,25 +15,25 @@ router.use(authenticate);
 // Production owner dashboard routes
 router.get(
   '/production/stats',
-  requireRole(['production_owner', 'production_manager']),
+  requireRole(['super_admin', 'production_owner', 'production_manager']),
   getProductionStats
 );
 
 router.get(
   '/production/recent-jobs',
-  requireRole(['production_owner', 'production_manager', 'production_staff']),
+  requireRole(['super_admin', 'production_owner', 'production_manager', 'production_staff']),
   getRecentJobs
 );
 
 router.get(
   '/production/revenue-chart',
-  requireRole(['production_owner', 'production_manager']),
+  requireRole(['super_admin', 'production_owner', 'production_manager']),
   getRevenueChart
 );
 
 router.get(
   '/production/active-job',
-  requireRole(['production_owner', 'production_manager', 'production_staff']),
+  requireRole(['super_admin', 'production_owner', 'production_manager', 'production_staff']),
   getActiveJob
 );
 
