@@ -1,46 +1,99 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { api } from "@/lib/api";
+import toast from "react-hot-toast";
 
 export default function AnalyticsPage() {
+  const { token } = useAuth();
   const [selectedPeriod, setSelectedPeriod] = useState("month");
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+    activeCustomers: 0,
+    avgOrderValue: 0,
+    revenueChange: 0,
+    ordersChange: 0,
+    customersChange: 0,
+    avgChange: 0,
+  });
+  const [revenueData, setRevenueData] = useState([]);
+  const [orderStatusData, setOrderStatusData] = useState({
+    completed: 0,
+    processing: 0,
+    printing: 0,
+    pending: 0,
+  });
 
-  const stats = [
-    { label: "Total Revenue", value: "$185,450", change: "+12.5%", icon: "💰", trend: "up" },
-    { label: "Total Orders", value: "1,248", change: "+8.2%", icon: "📦", trend: "up" },
-    { label: "Active Customers", value: "342", change: "+15.3%", icon: "👥", trend: "up" },
-    { label: "Avg. Order Value", value: "$148", change: "-2.1%", icon: "📊", trend: "down" },
-  ];
+  const fetchAnalytics = async () => {
+    if (!token) return;
 
-  const revenueData = [
-    { month: 'Jan', revenue: 12500, orders: 85 },
-    { month: 'Feb', revenue: 15800, orders: 102 },
-    { month: 'Mar', revenue: 14200, orders: 95 },
-    { month: 'Apr', revenue: 18900, orders: 128 },
-    { month: 'May', revenue: 17600, orders: 115 },
-    { month: 'Jun', revenue: 21300, orders: 145 },
-    { month: 'Jul', revenue: 19400, orders: 132 },
-    { month: 'Aug', revenue: 23100, orders: 156 },
-    { month: 'Sep', revenue: 20800, orders: 140 },
-    { month: 'Oct', revenue: 24500, orders: 165 },
-    { month: 'Nov', revenue: 26700, orders: 178 },
-  ];
+    // Store token for API calls
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('authToken', token);
+    }
 
-  const topProducts = [
-    { name: "Business Cards", orders: 456, revenue: "$22,800", percentage: 32 },
-    { name: "Brochures", orders: 289, revenue: "$18,450", percentage: 25 },
-    { name: "Flyers", orders: 234, revenue: "$12,200", percentage: 18 },
-    { name: "Banners", orders: 145, revenue: "$28,900", percentage: 15 },
-    { name: "Posters", orders: 124, revenue: "$9,640", percentage: 10 },
-  ];
+    try {
+      setLoading(true);
+      
+      const [productionStats, revenueChart] = await Promise.all([
+        api.get("/api/dashboard/production/stats"),
+        api.get("/api/dashboard/production/revenue-chart"),
+      ]);
 
-  const topCustomers = [
-    { name: "ABC Corp", orders: 45, revenue: "$18,450", avatar: "🏢" },
-    { name: "XYZ Inc", orders: 38, revenue: "$15,200", avatar: "🏭" },
-    { name: "Tech Start", orders: 32, revenue: "$12,800", avatar: "💻" },
-    { name: "Marketing Pro", orders: 28, revenue: "$9,240", avatar: "📱" },
-    { name: "Design Studio", orders: 24, revenue: "$8,640", avatar: "🎨" },
-  ];
+      // Calculate stats
+      const totalRevenue = productionStats.monthlyRevenue || 0;
+      const totalOrders = productionStats.totalOrders || 0;
+      const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+      setStats({
+        totalRevenue,
+        totalOrders,
+        activeCustomers: 0, // We'll need to add this endpoint later
+        avgOrderValue,
+        revenueChange: productionStats.revenueChange || 0,
+        ordersChange: 0,
+        customersChange: 0,
+        avgChange: 0,
+      });
+
+      setRevenueData(revenueChart);
+      
+      setOrderStatusData({
+        completed: productionStats.completedToday || 0,
+        processing: Math.floor(productionStats.inProgress / 2) || 0,
+        printing: Math.ceil(productionStats.inProgress / 2) || 0,
+        pending: productionStats.jobsInQueue || 0,
+      });
+
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+      toast.error("Failed to load analytics");
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (token) {
+      fetchAnalytics();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, selectedPeriod]);
+
+  const formatCurrency = (amount) => {
+    return `৳${amount.toLocaleString()}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -66,20 +119,53 @@ export default function AnalyticsPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <div key={stat.label} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-4xl">{stat.icon}</div>
-              <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                stat.trend === "up" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-              }`}>
-                {stat.change}
-              </span>
-            </div>
-            <p className="text-sm text-gray-600 mb-1">{stat.label}</p>
-            <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-4xl">💰</div>
+            <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+              stats.revenueChange >= 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+            }`}>
+              {stats.revenueChange >= 0 ? '+' : ''}{stats.revenueChange}%
+            </span>
           </div>
-        ))}
+          <p className="text-sm text-gray-600 mb-1">Total Revenue</p>
+          <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalRevenue)}</p>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-4xl">📦</div>
+            <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+              stats.ordersChange >= 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+            }`}>
+              {stats.ordersChange >= 0 ? '+' : ''}{stats.ordersChange}%
+            </span>
+          </div>
+          <p className="text-sm text-gray-600 mb-1">Total Orders</p>
+          <p className="text-2xl font-bold text-gray-900">{stats.totalOrders}</p>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-4xl">👥</div>
+            <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-700">
+              -
+            </span>
+          </div>
+          <p className="text-sm text-gray-600 mb-1">Active Customers</p>
+          <p className="text-2xl font-bold text-gray-900">{stats.activeCustomers}</p>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-4xl">📊</div>
+            <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-700">
+              -
+            </span>
+          </div>
+          <p className="text-sm text-gray-600 mb-1">Avg. Order Value</p>
+          <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.avgOrderValue)}</p>
+        </div>
       </div>
 
       {/* Period Selector */}
@@ -124,114 +210,68 @@ export default function AnalyticsPage() {
       {/* Revenue Chart */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-6">Revenue Trend</h2>
-        <div className="h-80 flex items-end justify-between gap-1">
-          {revenueData.map((data, index) => {
-            const maxRevenue = Math.max(...revenueData.map(d => d.revenue));
-            const height = (data.revenue / maxRevenue) * 100;
-            return (
-              <div key={data.month} className="flex-1 flex flex-col items-center gap-2 group">
-                <div className="relative w-full">
-                  <div 
-                    className="w-full bg-cyan-500 rounded-t-lg hover:bg-cyan-600 transition-colors cursor-pointer" 
-                    style={{ height: `${height * 2.5}px` }}
-                  >
-                    <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-3 py-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                      <div className="font-semibold">${(data.revenue / 1000).toFixed(1)}K</div>
-                      <div className="text-gray-300">{data.orders} orders</div>
+        {revenueData.length > 0 ? (
+          <div className="h-80 flex items-end justify-between gap-1">
+            {revenueData.map((data, index) => {
+              const maxRevenue = Math.max(...revenueData.map(d => d.revenue));
+              const height = maxRevenue > 0 ? (data.revenue / maxRevenue) * 100 : 0;
+              return (
+                <div key={index} className="flex-1 flex flex-col items-center gap-2 group">
+                  <div className="relative w-full">
+                    <div 
+                      className="w-full bg-cyan-500 rounded-t-lg hover:bg-cyan-600 transition-colors cursor-pointer" 
+                      style={{ height: `${height * 2.5}px`, minHeight: data.revenue > 0 ? '10px' : '0px' }}
+                    >
+                      <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-3 py-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                        <div className="font-semibold">{formatCurrency(data.revenue)}</div>
+                      </div>
                     </div>
                   </div>
+                  <span className="text-xs text-gray-500 font-medium">{data.month}</span>
                 </div>
-                <span className="text-xs text-gray-500 font-medium">{data.month}</span>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="h-80 flex items-center justify-center text-gray-500">
+            No revenue data available
+          </div>
+        )}
       </div>
 
-      {/* Two Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Products */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Top Products</h2>
-          <div className="space-y-4">
-            {topProducts.map((product, index) => (
-              <div key={product.name}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-cyan-100 rounded-lg flex items-center justify-center text-sm font-bold text-cyan-700">
-                      {index + 1}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{product.name}</p>
-                      <p className="text-xs text-gray-500">{product.orders} orders</p>
-                    </div>
-                  </div>
-                  <p className="text-sm font-bold text-gray-900">{product.revenue}</p>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-cyan-600 h-2 rounded-full"
-                    style={{ width: `${product.percentage}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Top Customers */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Top Customers</h2>
-          <div className="space-y-4">
-            {topCustomers.map((customer, index) => (
-              <div key={customer.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-cyan-100 rounded-lg flex items-center justify-center text-2xl">
-                    {customer.avatar}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">{customer.name}</p>
-                    <p className="text-xs text-gray-500">{customer.orders} orders</p>
-                  </div>
-                </div>
-                <p className="text-sm font-bold text-gray-900">{customer.revenue}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
+      {/* Two Column Layout - Removed static products and customers */}
+      
       {/* Order Status Distribution */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-6">Order Status Distribution</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="text-center">
             <div className="w-32 h-32 mx-auto mb-3 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-2xl font-bold">
-              156
+              {orderStatusData.completed}
             </div>
             <p className="text-sm font-semibold text-gray-900">Completed</p>
-            <p className="text-xs text-gray-500">68% of total</p>
+            <p className="text-xs text-gray-500">Today</p>
           </div>
           <div className="text-center">
             <div className="w-32 h-32 mx-auto mb-3 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center text-white text-2xl font-bold">
-              45
+              {orderStatusData.processing}
             </div>
-            <p className="text-sm font-semibold text-gray-900">In Progress</p>
-            <p className="text-xs text-gray-500">20% of total</p>
+            <p className="text-sm font-semibold text-gray-900">Processing</p>
+            <p className="text-xs text-gray-500">In queue</p>
           </div>
           <div className="text-center">
             <div className="w-32 h-32 mx-auto mb-3 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
-              18
+              {orderStatusData.printing}
             </div>
-            <p className="text-sm font-semibold text-gray-900">Quality Check</p>
-            <p className="text-xs text-gray-500">8% of total</p>
+            <p className="text-sm font-semibold text-gray-900">Printing</p>
+            <p className="text-xs text-gray-500">Active</p>
           </div>
           <div className="text-center">
             <div className="w-32 h-32 mx-auto mb-3 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-white text-2xl font-bold">
-              9
+              {orderStatusData.pending}
             </div>
             <p className="text-sm font-semibold text-gray-900">Pending</p>
-            <p className="text-xs text-gray-500">4% of total</p>
+            <p className="text-xs text-gray-500">Waiting</p>
           </div>
         </div>
       </div>

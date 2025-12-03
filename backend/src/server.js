@@ -20,6 +20,7 @@ import dashboardRoutes from './routes/dashboardRoutes.js';
 import materialRoutes from './routes/materialRoutes.js';
 import equipmentRoutes from './routes/equipmentRoutes.js';
 import deliveryRoutes from './routes/deliveryRoutes.js';
+import ticketRoutes from './routes/ticketRoutes.js';
 
 // Import middleware
 import { errorHandler, notFound } from './middleware/errorHandler.js';
@@ -87,6 +88,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/materials', materialRoutes);
 app.use('/api/equipment', equipmentRoutes);
 app.use('/api/deliveries', deliveryRoutes);
+app.use('/api/tickets', ticketRoutes);
 
 // 404 handler
 app.use(notFound);

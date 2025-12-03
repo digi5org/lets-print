@@ -3,7 +3,13 @@ import prisma from '../config/database.js';
 // Get dashboard stats for production owner
 export const getProductionStats = async (req, res, next) => {
   try {
-    const { tenantId } = req.user;
+    const { tenantId, roleName } = req.user;
+    const isSuperAdmin = roleName === 'super_admin';
+
+    const where = {};
+    if (!isSuperAdmin && tenantId) {
+      where.tenantId = tenantId;
+    }
 
     // Get order counts by status
     const [
@@ -15,25 +21,25 @@ export const getProductionStats = async (req, res, next) => {
     ] = await Promise.all([
       prisma.order.count({
         where: { 
-          tenantId,
+          ...where,
           status: 'PENDING' 
         },
       }),
       prisma.order.count({
         where: { 
-          tenantId,
+          ...where,
           status: 'PROCESSING' 
         },
       }),
       prisma.order.count({
         where: { 
-          tenantId,
+          ...where,
           status: 'PRINTING' 
         },
       }),
       prisma.order.count({
         where: {
-          tenantId,
+          ...where,
           status: 'COMPLETED',
           updatedAt: {
             gte: new Date(new Date().setHours(0, 0, 0, 0)),
@@ -41,7 +47,7 @@ export const getProductionStats = async (req, res, next) => {
         },
       }),
       prisma.order.count({
-        where: { tenantId },
+        where,
       }),
     ]);
 
@@ -49,7 +55,7 @@ export const getProductionStats = async (req, res, next) => {
     const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const currentMonthRevenue = await prisma.order.aggregate({
       where: {
-        tenantId,
+        ...where,
         status: 'COMPLETED',
         createdAt: {
           gte: startOfMonth,
@@ -65,7 +71,7 @@ export const getProductionStats = async (req, res, next) => {
     const endOfPrevMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 0);
     const prevMonthRevenue = await prisma.order.aggregate({
       where: {
-        tenantId,
+        ...where,
         status: 'COMPLETED',
         createdAt: {
           gte: startOfPrevMonth,
@@ -92,7 +98,7 @@ export const getProductionStats = async (req, res, next) => {
 
     const completedYesterday = await prisma.order.count({
       where: {
-        tenantId,
+        ...where,
         status: 'COMPLETED',
         updatedAt: {
           gte: yesterday,
@@ -121,11 +127,17 @@ export const getProductionStats = async (req, res, next) => {
 // Get recent orders/jobs
 export const getRecentJobs = async (req, res, next) => {
   try {
-    const { tenantId } = req.user;
+    const { tenantId, roleName } = req.user;
+    const isSuperAdmin = roleName === 'super_admin';
     const limit = parseInt(req.query.limit) || 10;
 
+    const where = {};
+    if (!isSuperAdmin && tenantId) {
+      where.tenantId = tenantId;
+    }
+
     const orders = await prisma.order.findMany({
-      where: { tenantId },
+      where,
       include: {
         user: {
           select: {
@@ -181,9 +193,15 @@ export const getRecentJobs = async (req, res, next) => {
 // Get revenue chart data (last 6 months)
 export const getRevenueChart = async (req, res, next) => {
   try {
-    const { tenantId } = req.user;
+    const { tenantId, roleName } = req.user;
+    const isSuperAdmin = roleName === 'super_admin';
     const months = 6;
     const chartData = [];
+
+    const where = {};
+    if (!isSuperAdmin && tenantId) {
+      where.tenantId = tenantId;
+    }
 
     for (let i = months - 1; i >= 0; i--) {
       const date = new Date();
@@ -193,7 +211,7 @@ export const getRevenueChart = async (req, res, next) => {
 
       const revenue = await prisma.order.aggregate({
         where: {
-          tenantId,
+          ...where,
           status: 'COMPLETED',
           createdAt: {
             gte: startOfMonth,
