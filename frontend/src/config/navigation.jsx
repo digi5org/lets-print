@@ -195,46 +195,46 @@ const ProfileIcon = () => (
 
 // Client Sidebar Navigation Items
 export const clientSidebarItems = [
-  
-  { 
-    id: 'new-order', 
-    label: 'New Order', 
+
+  {
+    id: 'new-order',
+    label: 'New Order',
     icon: <NewOrderIcon />
   },
-  { 
-    id: 'my-orders', 
-    label: 'My Orders', 
+  {
+    id: 'my-orders',
+    label: 'My Orders',
     icon: <MyOrdersIcon />,
     badge: 5
   },
-  { 
-    id: 'track-shipment', 
-    label: 'Track Shipment', 
+  {
+    id: 'track-shipment',
+    label: 'Track Shipment',
     icon: <TrackShipmentIcon />
   },
-  { 
-    id: 'design-library', 
-    label: 'Design Library', 
+  {
+    id: 'design-library',
+    label: 'Design Library',
     icon: <DesignLibraryIcon />
   },
-  { 
-    id: 'invoices', 
-    label: 'Invoices & Payments', 
+  {
+    id: 'invoices',
+    label: 'Invoices & Payments',
     icon: <InvoicesIcon />
   },
-  { 
-    id: 'browse-products', 
-    label: 'Browse Products', 
+  {
+    id: 'browse-products',
+    label: 'Browse Products',
     icon: <BrowseProductsIcon />
   },
-  
-  { 
-    id: 'tickets', 
-    label: 'Tickets', 
+
+  {
+    id: 'tickets',
+    label: 'Tickets',
     icon: <TicketsIcon />,
     badge: 2
   },
-  
+
 ];
 
 export const navigationItems = [
@@ -260,7 +260,7 @@ export const navigationItems = [
     name: "Admin Dashboard",
     href: "/dashboard/admin",
     icon: <HomeIcon />,
-    roles: ["superadmin"],
+    roles: ["super_admin"],
   },
   {
     name: "New Order",
@@ -385,6 +385,12 @@ export const navigationItems = [
     roles: ["business_owner"],
   },
   {
+    name: "Products",
+    href: "/dashboard/business/products",
+    icon: <ProductsServicesIcon />,
+    roles: ["business_owner"],
+  },
+  {
     name: "Clients",
     href: "/dashboard/business/customers",
     icon: <UsersIcon />,
@@ -436,73 +442,79 @@ export const navigationItems = [
     name: "Businesses",
     href: "/dashboard/admin/businesses",
     icon: <BusinessIcon />,
-    roles: ["superadmin"],
+    roles: ["super_admin"],
+  },
+  {
+    name: "Product Listing",
+    href: "/dashboard/admin/products",
+    icon: <ProductsServicesIcon />,
+    roles: ["super_admin"],
   },
   {
     name: "All Users",
     href: "/dashboard/users",
     icon: <UsersIcon />,
-    roles: ["superadmin"],
+    roles: ["super_admin"],
   },
   {
     name: "Tenants",
     href: "/dashboard/admin/tenants",
     icon: <TenantsIcon />,
-    roles: ["superadmin"],
+    roles: ["super_admin"],
   },
   {
     name: "System Health",
     href: "/dashboard/admin/system-health",
     icon: <SystemHealthIcon />,
-    roles: ["superadmin"],
+    roles: ["super_admin"],
   },
   {
     name: "Billing",
     href: "/dashboard/admin/billing",
     icon: <BillingIcon />,
-    roles: ["superadmin"],
+    roles: ["super_admin"],
   },
   {
     name: "Support",
     href: "/dashboard/admin/support",
     icon: <SupportIcon />,
-    roles: ["superadmin"],
+    roles: ["super_admin"],
   },
   {
     name: "Role Activity",
     href: "/dashboard/admin/role-activity",
     icon: <RoleActivityIcon />,
-    roles: ["superadmin"],
+    roles: ["super_admin"],
   },
   {
     name: "Resources",
     href: "/dashboard/admin/resources",
     icon: <ResourcesIcon />,
-    roles: ["superadmin"],
+    roles: ["super_admin"],
   },
   {
     name: "Notices",
     href: "/dashboard/admin/notices",
     icon: <NoticesIcon />,
-    roles: ["superadmin"],
+    roles: ["super_admin"],
   },
   {
     name: "Audit Log",
     href: "/dashboard/admin/audit-log",
     icon: <AuditLogIcon />,
-    roles: ["superadmin"],
+    roles: ["super_admin"],
   },
   {
     name: "Analytics",
     href: "/dashboard/analytics",
     icon: <AnalyticsIcon />,
-    roles: ["business_owner", "superadmin"],
+    roles: ["business_owner", "super_admin"],
   },
   {
     name: "Settings",
     href: "/dashboard/settings",
     icon: <SettingsIcon />,
-    roles: ["business_owner", "superadmin"],
+    roles: ["business_owner", "super_admin"],
   },
 ];
 

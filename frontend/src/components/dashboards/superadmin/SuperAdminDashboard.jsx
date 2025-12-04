@@ -449,7 +449,7 @@ export default function SuperAdminDashboard({ userName }) {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">SuperAdmin Dashboard</h1>
         <p className="mt-2 text-gray-600">
-          Welcome back, {userName}! Manage your entire system from here.
+          Welcome back, {userName || session?.user?.name || "Admin"}! Manage your entire system from here.
         </p>
       </div>
 

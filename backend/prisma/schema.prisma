@@ -74,12 +74,12 @@ model Tenant {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
-  users       User[]
-  products    Product[]
-  materials   Material[]
-  equipment   Equipment[]
-  deliveries  Delivery[]
-  tickets     Ticket[]
+  users          User[]
+  tenantProducts TenantProduct[] // Products selected from master catalog
+  materials      Material[]
+  equipment      Equipment[]
+  deliveries     Delivery[]
+  tickets        Ticket[]
 
   @@map("tenants")
 }
@@ -117,23 +117,46 @@ model User {
   @@index([verificationToken])
 }
 
+// Master Product Catalog (managed by SuperAdmin and Production Owner)
 model Product {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?  @db.Text
+  category        String
+  price           Float
+  imageUrl        String?
+  specifications  Json?    // Additional product specs (size, material, etc.)
+  isActive        Boolean  @default(true) // SuperAdmin can deactivate products globally
+  createdBy       String?  // User ID who created the product
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  orderItems      OrderItem[]
+  tenantProducts  TenantProduct[] // Junction table for business owner product selection
+
+  @@map("products")
+  @@index([category])
+  @@index([isActive])
+}
+
+// Junction table: Business Owner's product selection from master catalog
+model TenantProduct {
   id          String   @id @default(uuid())
-  name        String
-  description String?  @db.Text
-  category    String
-  price       Float
-  imageUrl    String?
-  isActive    Boolean  @default(true)
-  tenantId    String?  // Products can belong to a specific tenant
+  tenantId    String
+  productId   String
+  isActive    Boolean  @default(true) // Business owner controls visibility
+  customPrice Float?   // Optional: Business owner can set custom pricing
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
-  tenant      Tenant?  @relation(fields: [tenantId], references: [id], onDelete: SetNull)
-  orderItems  OrderItem[]
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
-  @@map("products")
+  @@unique([tenantId, productId]) // One product per tenant
+  @@map("tenant_products")
   @@index([tenantId])
+  @@index([productId])
+  @@index([isActive])
 }
 
 model Order {

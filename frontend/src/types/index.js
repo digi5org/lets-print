@@ -1,7 +1,7 @@
 // Type definitions converted to JSDoc comments for JavaScript
 
 /**
- * @typedef {'client' | 'business_owner' | 'production_owner' | 'superadmin'} UserRole
+ * @typedef {'client' | 'business_owner' | 'production_owner' | 'production_manager' | 'production_staff' | 'machine_operator' | 'quality_inspector' | 'super_admin'} UserRole
  */
 
 /**

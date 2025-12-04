@@ -124,48 +124,7 @@ export default function BusinessList() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">All Businesses</h2>
-          <p className="mt-1 text-gray-600">
-            Manage and view all businesses in the platform
-          </p>
-        </div>
-        <div className="text-sm text-gray-500">
-          {filteredBusinesses.length} {filteredBusinesses.length === 1 ? 'business' : 'businesses'}
-        </div>
-      </div>
-
-      {/* Search Bar */}
-      <div className="bg-white rounded-lg shadow p-4">
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg
-              className="h-5 w-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
-          <input
-            type="text"
-            placeholder="Search businesses by name or slug..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-          />
-        </div>
-      </div>
-
+    <div className="p-6 space-y-6">
       {/* Business Cards Grid */}
       {filteredBusinesses.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-12 text-center">

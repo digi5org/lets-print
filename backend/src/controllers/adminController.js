@@ -423,7 +423,7 @@ export const getAllTenants = async (req, res, next) => {
         _count: {
           select: {
             users: true,
-            products: true,
+            tenantProducts: true,
           },
         },
       },
@@ -494,7 +494,7 @@ export const deleteTenant = async (req, res, next) => {
         _count: {
           select: {
             users: true,
-            products: true,
+            tenantProducts: true,
           },
         },
       },
@@ -508,10 +508,10 @@ export const deleteTenant = async (req, res, next) => {
     }
 
     // Check if tenant has users or products
-    if (tenant._count.users > 0 || tenant._count.products > 0) {
+    if (tenant._count.users > 0 || tenant._count.tenantProducts > 0) {
       return res.status(400).json({
         success: false,
-        message: `Cannot delete tenant. It has ${tenant._count.users} user(s) and ${tenant._count.products} product(s). Please remove them first.`,
+        message: `Cannot delete tenant. It has ${tenant._count.users} user(s) and ${tenant._count.tenantProducts} product(s). Please remove them first.`,
       });
     }
 
@@ -634,7 +634,7 @@ export const impersonateBusiness = async (req, res, next) => {
       entityType: 'tenant',
       entityId: tenant.id,
       entityName: tenant.name,
-      metadata: { 
+      metadata: {
         impersonatedUser: businessOwner.email,
         readOnly: readOnly,
       },

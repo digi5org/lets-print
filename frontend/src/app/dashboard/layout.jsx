@@ -75,15 +75,8 @@ export default function DashboardLayoutWrapper({ children }) {
     );
   }
 
-  // Map Auth.js role names to original UI role names
-  const roleMapping = {
-    'super_admin': 'superadmin',
-    'business_owner': 'business_owner',
-    'production_owner': 'production_owner',
-    'client': 'client'
-  };
-
-  const uiRole = roleMapping[effectiveRole] || 'client';
+  // Use the role directly - navigation.jsx expects roles like 'super_admin', 'business_owner', etc.
+  const uiRole = effectiveRole || 'client';
 
   return (
     <DashboardLayout userRole={uiRole} userName={effectiveName}>

@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import SuperAdminDashboard from "@/components/dashboards/superadmin/SuperAdminDashboard";
 
 export default function AdminDashboardPage() {
-  const { user } = useAuth();
+  const { session } = useAuth();
 
-  return <SuperAdminDashboard userName={user?.name} />;
+  return <SuperAdminDashboard userName={session?.user?.name} />;
 }
